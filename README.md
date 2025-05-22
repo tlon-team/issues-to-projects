@@ -72,7 +72,7 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
         *   If the workflow file in the repository is identical to the one being deployed, it will skip committing and pushing for that repository.
     *   **Result**: After these two steps, any new issues created in the configured repositories will be automatically added to your GitHub project by the GitHub Action.
 
-**Part 2: Handling Existing Issues (One-Time Population)**
+**Part 2 (optional): Handling Existing Issues (One-Time Population)**
 
 The GitHub Action set up above only works for *newly created* issues. If you have existing issues in your repositories that you want to add to the project, use the following scripts.
 
