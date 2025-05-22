@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# --- Configuration ---
-# !!! IMPORTANT: Configure these variables !!!
-
-# Path to the GitHub Actions workflow file you want to add to each repository.
-# This script assumes the workflow file is located relative to where you run this script,
-# or you can provide an absolute path.
-# Example: WORKFLOW_FILE_PATH="./.github/workflows/add-issues-to-project.yml"
 # Source the central configuration file
 CONFIG_FILE_PATH="$(dirname "$0")/config.sh"
 if [ -f "$CONFIG_FILE_PATH" ]; then
