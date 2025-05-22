@@ -67,27 +67,23 @@ Before using these scripts, ensure you have the following installed and configur
 
 *   **Purpose**: Deploys a GitHub Actions workflow file (e.g., one that uses `actions/add-to-project` to automatically add new issues to a project) to multiple repositories. It clones each repository, adds/updates the workflow file, commits, and pushes the change.
 *   **How to use**:
-    1.  **Prepare your workflow file**: You need a GitHub Actions workflow YAML file (e.g., `add-new-issues-to-project.yml`). This script *does not* create this file for you; it only distributes an existing one. An example workflow using `actions/add-to-project` might look like:
-        ```yaml
-        # .github/workflows/add-new-issues-to-project.yml
-        name: Add New Issues to Project
-        on:
-          issues:
-            types:
-              - opened
-        jobs:
-          add-to-project:
-            name: Add issue to project
-            runs-on: ubuntu-latest
-            steps:
-              - name: Add to project
-                uses: actions/add-to-project@v0.5.0 # Check for the latest version
+    1.  **Prepare your workflow file using the provided `add-issues-to-project.yml`**:
+        *   This repository includes a sample GitHub Actions workflow file named `add-issues-to-project.yml`.
+        *   **Customize it**:
+            1.  Open the `add-issues-to-project.yml` file (from *this* repository).
+            2.  Modify the `project-url` to point to your specific GitHub project. The original file contains `project-url: https://github.com/orgs/tlon-team/projects/9`. You **must** change this to your organization and project number:
+                ```yaml
+                # Inside your copy of add-issues-to-project.yml
+                # ...
                 with:
                   project-url: https://github.com/orgs/YOUR_GITHUB_ORGANIZATION/projects/YOUR_PROJECT_NUMBER
-                  github-token: ${{ secrets.ADD_TO_PROJECT_PAT }} # This secret is set by automate_github_secrets
-        ```
-        Replace `YOUR_GITHUB_ORGANIZATION` and `YOUR_PROJECT_NUMBER` in *your* workflow file. The `github-token` uses a secret named `ADD_TO_PROJECT_PAT` by default.
-    2.  Configure `WORKFLOW_FILE_PATH` (path to your local workflow file) and `REPO_LIST` in the `add-issues-to-project-batch` script.
+                  github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+                ```
+                Replace `YOUR_GITHUB_ORGANIZATION` and `YOUR_PROJECT_NUMBER` with your actual details.
+            3.  Save this customized version of `add-issues-to-project.yml` to a location on your computer.
+    2.  Configure the `add-issues-to-project-batch` script:
+        *   Set the `WORKFLOW_FILE_PATH` variable in the script to the full path of your *customized and saved* `add-issues-to-project.yml` file (e.g., `WORKFLOW_FILE_PATH="$HOME/my_custom_workflows/add-issues-to-project.yml"`).
+        *   Configure the `REPO_LIST` in the script with the repositories where you want to deploy this workflow.
     3.  Run: `bash ./add-issues-to-project-batch`
 *   **Notes**:
     *   This script performs `git clone`, `git commit`, and `git push` operations. Ensure your `gh` CLI is authenticated with rights to push to these repositories, or that your Git credential manager is set up.
@@ -108,18 +104,48 @@ Before using these scripts, ensure you have the following installed and configur
     *   **Security**: Be very careful with your PAT. Once you've run this script to set the secrets in your repositories, you might want to clear the `PAT_VALUE` from the script file or delete the script if you don't need to run it again soon, to avoid accidentally exposing the PAT if the script is shared or committed.
     *   The secret name `ADD_TO_PROJECT_PAT` is a common convention for the `actions/add-to-project` action, but can be changed if your workflow uses a different secret name (you'd need to change it in this script and in your workflow YAML).
 
-## Workflow Strategy
+## Recommended Workflow
 
-A common strategy these scripts support:
+This section outlines the recommended order for using the scripts to set up automated issue tracking for new issues and to handle existing issues.
 
-1.  **Initial Setup (One-time or infrequent):**
-    *   Use `add-all-issues-to-project` to add all existing issues from your repositories to your main project board. This populates the project with historical data.
-2.  **Automate Future Additions (Set up GitHub Actions):**
-    *   Create/obtain a GitHub Actions workflow file (e.g., `add-new-issues-to-project.yml`) that automatically adds *new* issues to your project.
-    *   If this workflow requires a PAT (like `actions/add-to-project` does), use `automate_github_secrets` to securely add the PAT as a secret (e.g., `ADD_TO_PROJECT_PAT`) to all relevant repositories.
-    *   Use `add-issues-to-project-batch` to deploy this workflow file to all relevant repositories.
-3.  **Ongoing Maintenance/Synchronization:**
-    *   Periodically run `categorize-project-items` to update the status of project items based on their linked issues' states (Open/Closed). This can be run manually or potentially scheduled as a cron job if desired (though running it via GitHub Actions on a schedule would be more idiomatic for GitHub-centric automation).
+**Part 1: Initial Setup (For Automating *New* Issues)**
+
+This part focuses on configuring GitHub Actions to automatically add newly created issues to your project. These steps are typically done once.
+
+1.  **`automate_github_secrets`**
+    *   **Purpose**: Securely provides the necessary GitHub Personal Access Token (PAT) to your repositories. This PAT allows the GitHub Action (deployed in the next step) to add issues to your project.
+    *   **Action**:
+        1.  Generate a GitHub Personal Access Token (PAT) with the required scopes (see Prerequisites).
+        2.  Configure `PAT_VALUE` (with your PAT) and `REPO_LIST` in the `automate_github_secrets` script.
+        3.  Run the script: `bash ./automate_github_secrets`. It sets the `ADD_TO_PROJECT_PAT` secret in all repositories listed in its `REPO_LIST`.
+
+2.  **`add-issues-to-project-batch`** (using the provided `add-issues-to-project.yml`)
+    *   **Purpose**: Deploys the GitHub Actions workflow (`add-issues-to-project.yml`) to all specified repositories. This workflow will automatically add any *newly created* issues in these repositories to your designated project.
+    *   **Action**:
+        1.  Locate the `add-issues-to-project.yml` file provided in *this* automation scripts repository.
+        2.  **Customize it**: Open this YAML file. You **must** change the `project-url` to point to your organization and project number (e.g., `https://github.com/orgs/YOUR_GITHUB_ORGANIZATION/projects/YOUR_PROJECT_NUMBER`).
+        3.  Save this customized `add-issues-to-project.yml` file somewhere on your local system.
+        4.  In the `add-issues-to-project-batch` script, update the `WORKFLOW_FILE_PATH` variable to point to the location where you saved your customized YAML file.
+        5.  Configure the `REPO_LIST` in `add-issues-to-project-batch` with the target repositories.
+        6.  Run the script: `bash ./add-issues-to-project-batch`.
+    *   **Result**: After these two steps, any new issues created in the configured repositories will be automatically added to your GitHub project by the GitHub Action.
+
+**Part 2: Handling Existing Issues (One-Time Population)**
+
+The GitHub Action set up above only works for *newly created* issues. If you have existing issues in your repositories that you want to add to the project, use the following scripts.
+
+3.  **`add-all-issues-to-project`**
+    *   **Purpose**: Adds all existing issues (both open and closed) from your specified repositories to the project.
+    *   **Action**:
+        1.  Configure `ORG_NAME`, `PROJECT_NUMBER`, and `REPO_LIST` in the `add-all-issues-to-project` script.
+        2.  Run the script: `bash ./add-all-issues-to-project`. This can take a significant amount of time depending on the number of issues and repositories.
+
+4.  **`categorize-project-items`**
+    *   **Purpose**: After adding existing issues (using the script above), this script updates their status in the project based on their current state in the repository. Open issues will be set to your "Todo" status (or equivalent), and closed issues to your "Done" status (or equivalent).
+    *   **Action**:
+        1.  Configure the project details (`ORG_NAME`, `PROJECT_NUMBER`) and your specific status field names (`STATUS_FIELD_NAME`, `TODO_OPTION_NAME`, `DONE_OPTION_NAME`) in the `categorize-project-items` script. Ensure these names exactly match your project's setup.
+        2.  Run the script: `bash ./categorize-project-items`.
+    *   **Note**: This script can also be run periodically to ensure project item statuses reflect the actual issue states if they are changed manually or by other processes outside the project board.
 
 ## Troubleshooting
 
