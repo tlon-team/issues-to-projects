@@ -18,16 +18,7 @@ Before using these scripts, ensure you have the following installed and configur
     *   Installation instructions: [stedolan.github.io/jq/download/](https://stedolan.github.io/jq/download/)
 3.  **Bash Shell**: These scripts are written for Bash.
     *   The shebang (first line, e.g., `#!/opt/homebrew/bin/bash` or `#!/bin/bash`) in the scripts might need adjustment based on your system's Bash location. `#!/usr/bin/env bash` is often a more portable option.
-4.  **Git**: Required by `add-issues-to-project-batch` for cloning repositories.
-5.  **GitHub Personal Access Token (PAT)** (Recommended for some operations, especially GitHub Actions):
-    *   If you're using the `automate_github_secrets` script or the `add-issues-to-project-batch` script with a workflow that relies on a PAT (e.g., `actions/add-to-project` often uses a PAT stored in `ADD_TO_PROJECT_PAT`), you'll need to generate one.
-    *   Go to GitHub > Settings > Developer settings > Personal access tokens (Tokens (classic) or Fine-grained tokens).
-    *   **Required scopes for PAT (classic)**:
-        *   `repo`: Full control of private repositories (needed to add workflow files, set secrets).
-        *   `project`: Read and write projects.
-        *   `workflow` (if the PAT is used by a workflow that modifies other workflows or needs to bypass branch protections for workflow changes): Update GitHub Action workflows.
-    *   **Fine-grained tokens**: Configure access to specific repositories and grant `Read and Write` access for `Actions`, `Contents`, `Issues`, `Metadata`, `Projects`, and `Secrets`.
-    *   **Important**: Keep your PAT secure. Do not hardcode it directly into scripts you commit publicly if avoidable. The `automate_github_secrets` script is designed to help you set this PAT as a secret in multiple repositories.
+4.  **Git**: Required by `batch-deploy-add-new-issues-workflow.sh` for cloning repositories.
 
 **Important General Configuration:**
 
@@ -47,8 +38,18 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
 1.  **`automate-github-secrets.sh`**
     *   **Purpose**: Securely provides the necessary GitHub Personal Access Token (PAT) to your repositories. This PAT allows the GitHub Action (deployed in the next step) to add issues to your project.
     *   **Action**:
-        1.  Generate a GitHub Personal Access Token (PAT) with the required scopes (see Prerequisites).
-        2.  Configure `PAT_VALUE` (with your PAT) and `REPO_LIST` in the `automate-github-secrets.sh` script.
+        1.  **Generate a GitHub Personal Access Token (PAT classic)**:
+            *   Go to GitHub > Your Profile (top right) > Settings > Developer settings (bottom left) > Personal access tokens > Tokens (classic).
+            *   Click "Generate new token" and select "Generate new token (classic)".
+            *   Give your token a descriptive name (e.g., "multi-repo-project-automation").
+            *   Set an expiration date.
+            *   **Required scopes**:
+                *   `repo`: Full control of private repositories (needed to add workflow files, set secrets in target repos).
+                *   `project`: Read and write projects (to allow the `actions/add-to-project` action to manage project items).
+                *   `workflow`: Update GitHub Action workflows (needed by the `actions/add-to-project` workflow if it needs to make changes that require this scope, or if you are deploying workflows that modify other workflows).
+            *   Click "Generate token".
+            *   **Copy the token immediately.** You will not be able to see it again.
+        2.  Configure `PAT_VALUE` (with the PAT you just generated) and `REPO_LIST` in the `automate-github-secrets.sh` script.
         3.  Run the script: `bash ./automate-github-secrets.sh`. It sets the `ADD_TO_PROJECT_PAT` secret in all repositories listed in its `REPO_LIST`.
     *   **Notes**:
         *   **Security**: Be very careful with your PAT. Once you've run this script to set the secrets in your repositories, you might want to clear the `PAT_VALUE` from the script file or delete the script if you don't need to run it again soon, to avoid accidentally exposing the PAT if the script is shared or committed.
