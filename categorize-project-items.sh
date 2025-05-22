@@ -11,21 +11,13 @@ STATUS_FIELD_NAME="Status"         # Replace with the exact name of your project
 TODO_OPTION_NAME="Todo"            # Replace with the exact name of the option for 'To Do' items in your status field
 DONE_OPTION_NAME="Done"            # Replace with the exact name of the option for 'Done' items in your status field
 
-# Control repository scope for item processing:
-# If PROCESS_ALL_REPOS is true (default), the script considers items linked to issues from any repository within the project.
-# If PROCESS_ALL_REPOS is false, only items linked to issues from repositories listed in REPO_LIST will be processed.
-PROCESS_ALL_REPOS="true"
+# REPO_LIST: Define specific repositories to filter project items by.
+# If REPO_LIST is empty (default), the script considers items linked to issues from *any* repository within the project.
+# If REPO_LIST is populated, only items linked to issues from repositories listed in REPO_LIST will be processed.
 REPO_LIST=(
     # "OWNER_NAME/REPO_NAME_1"
     # "OWNER_NAME/REPO_NAME_2"
 )
-
-# --- Initial Checks ---
-if [ "$PROCESS_ALL_REPOS" == "false" ] && [ ${#REPO_LIST[@]} -eq 0 ]; then
-    echo "Error: PROCESS_ALL_REPOS is set to false, but REPO_LIST is empty." >&2
-    echo "Please populate REPO_LIST or set PROCESS_ALL_REPOS to true to process items from all repositories." >&2
-    exit 1
-fi
 
 # --- Get Project and Field Details ---
 echo "Fetching Project Node ID for $OWNER_NAME/projects/$PROJECT_NUMBER..."
@@ -76,7 +68,7 @@ while IFS= read -r item_json; do
 
     # Repository filtering logic
     process_this_item=true
-    if [ "$PROCESS_ALL_REPOS" == "false" ]; then # REPO_LIST is guaranteed to be non-empty here due to earlier check
+    if [ ${#REPO_LIST[@]} -gt 0 ]; then # Only filter if REPO_LIST is populated
         if [ -n "$ISSUE_URL" ] && [ "$ISSUE_URL" != "null" ]; then
             # Extract owner/repo from issue URL (e.g., https://github.com/owner/repo/issues/123)
             repo_full_name_from_issue=$(echo "$ISSUE_URL" | sed -n 's|https://github.com/\([^/]*\)/\([^/]*\)/issues/.*|\1/\2|p')

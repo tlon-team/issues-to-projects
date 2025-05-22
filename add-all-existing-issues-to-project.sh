@@ -16,17 +16,17 @@ REPO_LIST=(
 )
 
 # Control repository scope:
-# If PROCESS_ALL_REPOS is true, REPO_LIST above will be ignored, and all repositories for OWNER_NAME will be processed.
-# If PROCESS_ALL_REPOS is false (default), only repositories in REPO_LIST will be processed.
-PROCESS_ALL_REPOS="false"
+# If REPO_LIST is empty, the script will attempt to process all repositories for the OWNER_NAME.
+# Otherwise, only repositories in REPO_LIST will be processed.
 
 # --- Initial Checks and Repo List Population ---
-if [ "$PROCESS_ALL_REPOS" == "true" ]; then
-    if [ "$OWNER_NAME" == "GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then # Check against default placeholder
-        echo "Error: PROCESS_ALL_REPOS is true, but OWNER_NAME is not configured or is set to the placeholder 'GITHUB_OWNER'." >&2
+if [ ${#REPO_LIST[@]} -eq 0 ]; then
+    if [ "$OWNER_NAME" == "GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then
+        echo "Error: REPO_LIST is empty and OWNER_NAME is not configured or is set to the placeholder 'GITHUB_OWNER'." >&2
+        echo "Please configure OWNER_NAME to process all its repositories, or populate REPO_LIST." >&2
         exit 1
     fi
-    echo "PROCESS_ALL_REPOS is true. Fetching all repositories for owner $OWNER_NAME..."
+    echo "REPO_LIST is empty. Fetching all repositories for owner $OWNER_NAME..."
     ALL_REPOS_OUTPUT=$(gh repo list "$OWNER_NAME" --limit 2000 --json nameWithOwner -q '.[] | .nameWithOwner' 2>&1)
     GH_EXIT_CODE=$?
     if [ $GH_EXIT_CODE -ne 0 ] || [[ "$ALL_REPOS_OUTPUT" == *"Could not resolve"* || "$ALL_REPOS_OUTPUT" == *"HTTP"* ]]; then
@@ -45,12 +45,15 @@ if [ "$PROCESS_ALL_REPOS" == "true" ]; then
         echo "No repositories found for owner $OWNER_NAME. Exiting."
         exit 0
     else
-        REPO_LIST=("${TEMP_REPO_LIST[@]}") # Overwrite REPO_LIST
+        REPO_LIST=("${TEMP_REPO_LIST[@]}") # Overwrite REPO_LIST with all fetched repos
         echo "Successfully fetched ${#REPO_LIST[@]} repositories for owner $OWNER_NAME."
     fi
-elif [ ${#REPO_LIST[@]} -eq 0 ]; then # PROCESS_ALL_REPOS is false
-    echo "Error: PROCESS_ALL_REPOS is false and REPO_LIST is empty. Nothing to process." >&2
-    echo "Please populate REPO_LIST in the script or set PROCESS_ALL_REPOS to true." >&2
+elif [ ${#REPO_LIST[@]} -gt 0 ]; then
+    echo "Processing ${#REPO_LIST[@]} repositories specified in REPO_LIST."
+fi
+
+if [ ${#REPO_LIST[@]} -eq 0 ]; then
+    echo "Error: No repositories to process. REPO_LIST is empty and could not be populated." >&2
     exit 1
 fi
 
