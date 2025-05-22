@@ -24,9 +24,11 @@ Before using these scripts, ensure you have the following installed and configur
     *   The shebang (first line, e.g., `#!/opt/homebrew/bin/bash` or `#!/bin/bash`) in the scripts might need adjustment based on your system's Bash location. `#!/usr/bin/env bash` is often a more portable option.
 4.  **Git**: Required by `batch-deploy-add-new-issues-workflow.sh` for cloning repositories.
 
-**Important General Configure `config.sh`**:
+## Configuration
+
+1.  **Configure `config.sh`**:
     *   Open `config.sh` in a text editor and replace all placeholder values (e.g., `YOUR_GITHUB_OWNER`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_EXAMPLE_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
-*   Make scripts executable: `chmod +x *.sh`.
+2.  **Make scripts executable**: `chmod +x *.sh`.
 
 ## Usage
 
