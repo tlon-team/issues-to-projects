@@ -2,28 +2,30 @@
 # You can get a list of all repos for your owner (organization or user) with a command like:
 # gh repo list YOUR_GITHUB_OWNER --limit 1000 --json nameWithOwner -q '.[].nameWithOwner'
 
-# !!! IMPORTANT: Configure these variables !!!
-OWNER_NAME="YOUR_GITHUB_OWNER"      # Replace with your GitHub organization or user name. Used if PROCESS_ALL_REPOS is true.
-PAT_VALUE="YOUR_GITHUB_PAT"         # Replace with your GitHub Personal Access Token (PAT)
-                                    # This PAT needs 'repo' and 'project' scopes. If the workflow you intend to use
-                                    # (which this PAT might be for) modifies workflow files itself, also add 'workflow' scope.
-                                    # The secret name "ADD_TO_PROJECT_PAT" is a common convention for actions like `actions/add-to-project`.
-                                    # If your workflow uses a different secret name, update it here and in the workflow file.
-
-# REPO_LIST: Define specific repository names (not full paths, e.g., "my-repo") to process.
-# These names will be combined with OWNER_NAME (e.g., OWNER_NAME/my-repo).
-# If REPO_LIST is empty, the script will attempt to process all repositories for the OWNER_NAME.
-REPO_LIST=(
-  # "YOUR_EXAMPLE_REPO_1"
-  # "YOUR_EXAMPLE_REPO_2"
-  # Add more repository names here
-)
+# Source the central configuration file
+CONFIG_FILE_PATH="$(dirname "$0")/config.sh"
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    source "$CONFIG_FILE_PATH"
+else
+    echo "Error: Configuration file config.sh not found in the script's directory." >&2
+    echo "Please create it (e.g., from config.sh.example) and configure your variables." >&2
+    exit 1
+fi
 
 # --- Initial Checks and Repo List Population ---
-# OWNER_NAME must be set correctly, as it's used to construct full repository paths or to fetch all repositories.
+# Variables are now sourced from config.sh
+
+# OWNER_NAME must be set correctly in config.sh
 if [ "$OWNER_NAME" == "YOUR_GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then
-    echo "Error: OWNER_NAME is not configured or is set to the placeholder 'YOUR_GITHUB_OWNER'." >&2
-    echo "OWNER_NAME is required." >&2
+    echo "Error: OWNER_NAME is not configured in config.sh or is still set to the placeholder 'YOUR_GITHUB_OWNER'." >&2
+    echo "Please update config.sh." >&2
+    exit 1
+fi
+
+# PAT_VALUE must be set correctly in config.sh
+if [ "$PAT_VALUE" == "YOUR_GITHUB_PAT" ] || [ -z "$PAT_VALUE" ]; then
+    echo "Error: PAT_VALUE is not configured in config.sh or is still set to the placeholder 'YOUR_GITHUB_PAT'." >&2
+    echo "Please update config.sh." >&2
     exit 1
 fi
 

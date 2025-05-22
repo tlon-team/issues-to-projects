@@ -7,26 +7,33 @@
 # This script assumes the workflow file is located relative to where you run this script,
 # or you can provide an absolute path.
 # Example: WORKFLOW_FILE_PATH="./.github/workflows/add-issues-to-project.yml"
-# Example: WORKFLOW_FILE_PATH="$HOME/gh_actions_workflows/add-issues-to-project.yml"
-WORKFLOW_FILE_PATH="YOUR_PATH_TO/add-issues-to-project.yml" # Replace with the actual path
-
-OWNER_NAME="YOUR_GITHUB_OWNER"      # Replace with your GitHub organization or user name. Used if PROCESS_ALL_REPOS is true.
-
-# REPO_LIST: Define specific repository names (not full paths, e.g., "my-repo") to process.
-# These names will be combined with OWNER_NAME (e.g., OWNER_NAME/my-repo).
-# If REPO_LIST is empty, the script will attempt to deploy the workflow to all repositories for the OWNER_NAME.
-REPO_LIST=(
-  # "YOUR_EXAMPLE_REPO_1"
-  # "YOUR_EXAMPLE_REPO_2"
-  # Add more repository names here
-)
-# --- End Configuration ---
+# Source the central configuration file
+CONFIG_FILE_PATH="$(dirname "$0")/config.sh"
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    source "$CONFIG_FILE_PATH"
+else
+    echo "Error: Configuration file config.sh not found in the script's directory." >&2
+    echo "Please create it (e.g., from config.sh.example) and configure your variables." >&2
+    exit 1
+fi
 
 # --- Initial Checks and Repo List Population ---
-# OWNER_NAME must be set correctly, as it's used to construct full repository paths or to fetch all repositories.
+# Variables are now sourced from config.sh
+
+# OWNER_NAME must be set correctly in config.sh
 if [ "$OWNER_NAME" == "YOUR_GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then
-    echo "Error: OWNER_NAME is not configured or is set to the placeholder 'YOUR_GITHUB_OWNER'." >&2
-    echo "OWNER_NAME is required." >&2
+    echo "Error: OWNER_NAME is not configured in config.sh or is still set to the placeholder 'YOUR_GITHUB_OWNER'." >&2
+    echo "Please update config.sh." >&2
+    exit 1
+fi
+
+# WORKFLOW_FILE_PATH must be set correctly in config.sh and the file must exist
+if [ "$WORKFLOW_FILE_PATH" == "YOUR_PATH_TO/add-issues-to-project.yml" ] || [ -z "$WORKFLOW_FILE_PATH" ]; then
+    echo "Error: WORKFLOW_FILE_PATH is not configured in config.sh or is still set to the placeholder." >&2
+    echo "Please update config.sh." >&2
+    exit 1
+elif [ ! -f "$WORKFLOW_FILE_PATH" ]; then
+    echo "Error: Workflow file specified in config.sh not found at: '$WORKFLOW_FILE_PATH'" >&2
     exit 1
 fi
 
@@ -67,11 +74,7 @@ if [ ${#ACTUAL_REPO_LIST[@]} -eq 0 ]; then
     exit 1
 fi
 
-if [ ! -f "$WORKFLOW_FILE_PATH" ]; then
-    echo "Error: Workflow file not found at '$WORKFLOW_FILE_PATH'"
-    echo "Please update the WORKFLOW_FILE_PATH variable in this script."
-    exit 1
-fi
+# The check for WORKFLOW_FILE_PATH existence is now part of the initial checks above.
 
 WORKFLOW_FILE_BASENAME=$(basename "$WORKFLOW_FILE_PATH")
 WORKFLOW_FILE_CONTENT=$(cat "$WORKFLOW_FILE_PATH")

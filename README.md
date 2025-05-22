@@ -26,12 +26,17 @@ Before using these scripts, ensure you have the following installed and configur
 
 **Important General Configuration:**
 
-*   Before running any script, open it in a text editor.
-*   Locate the "Configuration" section near the top.
-*   Replace placeholder values (e.g., `YOUR_GITHUB_OWNER`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_EXAMPLE_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
-*   **`OWNER_NAME`**: This variable (e.g., `YOUR_GITHUB_OWNER`) must always be set to your GitHub username or organization name. It's used to construct full repository paths (e.g., `OWNER_NAME/REPO_NAME`) or to fetch all repositories if `REPO_LIST` is empty.
-*   **`REPO_LIST`**: When populating this list, use only the repository names (e.g., `my-cool-repo`), not the full `owner/repo` path. The script will combine `OWNER_NAME` with these names.
-*   Make scripts executable: `chmod +x script-name.sh` (e.g., `chmod +x add-all-existing-issues-to-project.sh`).
+*   **Create and Configure `config.sh`**:
+    *   All scripts now source their configuration from a central `config.sh` file located in the same directory as the scripts.
+    *   A `config.sh.example` file is provided. If `config.sh` does not exist, you should copy the example:
+        ```bash
+        cp config.sh.example config.sh
+        ```
+    *   **Important**: Open `config.sh` in a text editor and carefully review and replace all placeholder values (e.g., `YOUR_GITHUB_OWNER`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_EXAMPLE_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
+    *   **`OWNER_NAME`**: This variable in `config.sh` must be set to your GitHub username or organization name.
+    *   **`REPO_LIST`**: When populating this list in `config.sh`, use only the repository names (e.g., `my-cool-repo`), not the full `owner/repo` path. The scripts will combine `OWNER_NAME` with these names. If `REPO_LIST` is left empty, relevant scripts will attempt to operate on all repositories for `OWNER_NAME`.
+    *   It is strongly recommended to add `config.sh` to your `.gitignore` file to prevent accidental commits of sensitive information like your `PAT_VALUE`.
+*   Make scripts executable: `chmod +x *.sh`.
 
 ## Usage
 
@@ -53,10 +58,7 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
                 *   `workflow`: Update GitHub Action workflows (needed by the `actions/add-to-project` workflow if it needs to make changes that require this scope, or if you are deploying workflows that modify other workflows).
             *   Click "Generate token".
             *   **Copy the token immediately.** You will not be able to see it again.
-        2.  Configure the `automate-github-secrets.sh` script:
-            *   Set `PAT_VALUE` with the PAT you just generated.
-            *   Set `OWNER_NAME` to your GitHub username or organization name. This is mandatory.
-            *   Optionally, populate `REPO_LIST` with specific repository names (e.g., `"my-repo-1"`, `"another-repo"`). If `REPO_LIST` is empty, the script will target all repositories under `OWNER_NAME`.
+        2.  Ensure `OWNER_NAME`, `PAT_VALUE`, and optionally `REPO_LIST` are correctly set in `config.sh` as per its comments.
         3.  Run the script: `bash ./automate-github-secrets.sh`.
     *   **Notes**:
         *   **Security**: Be very careful with your PAT. Once you've run this script to set the secrets in your repositories, you might want to clear the `PAT_VALUE` from the script file or delete the script if you don't need to run it again soon, to avoid accidentally exposing the PAT if the script is shared or committed.
@@ -71,10 +73,7 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
             *   For a user project: `https://github.com/users/YOUR_USER_NAME/projects/YOUR_PROJECT_NUMBER`
         3.  By default, this action will add all issues to the project board, regardless of their status, tag, etc. If you want to filter issues based on specific criteria (e.g., only open issues), you can modify the script accordingly.
         3.  Save this customized `add-issues-to-project.yml` file somewhere on your local system.
-        4.  Configure the `batch-deploy-add-new-issues-workflow.sh` script:
-            *   Update `WORKFLOW_FILE_PATH` to point to your customized YAML file.
-            *   Set `OWNER_NAME` to your GitHub username or organization name. This is mandatory.
-            *   Optionally, populate `REPO_LIST` with specific repository names. If `REPO_LIST` is empty, the script will target all repositories under `OWNER_NAME`.
+        4.  Ensure `OWNER_NAME`, `WORKFLOW_FILE_PATH`, and optionally `REPO_LIST` are correctly set in `config.sh`. The `WORKFLOW_FILE_PATH` should be the correct path to your customized `add-issues-to-project.yml`.
         5.  Run the script: `bash ./batch-deploy-add-new-issues-workflow.sh`.
     *   **Notes**:
         *   This script performs `git clone`, `git commit`, and `git push` operations. Ensure your `gh` CLI is authenticated with rights to push to these repositories, or that your Git credential manager is set up.
@@ -90,10 +89,7 @@ The GitHub Action set up above only works for *newly created* issues. If you hav
 3.  **`add-all-existing-issues-to-project.sh`**
     *   **Purpose**: Adds all existing issues (both open and closed) from specified repositories to the project.
     *   **Action**:
-        1.  Configure the `add-all-existing-issues-to-project.sh` script:
-            *   Set `OWNER_NAME` to your GitHub username or organization name. This is mandatory.
-            *   Set `PROJECT_NUMBER`.
-            *   Optionally, populate `REPO_LIST` with specific repository names. If `REPO_LIST` is left empty, the script will process all repositories under `OWNER_NAME`.
+        1.  Ensure `OWNER_NAME`, `PROJECT_NUMBER`, and optionally `REPO_LIST` are correctly set in `config.sh`.
         2.  Run the script: `bash ./add-all-existing-issues-to-project.sh`. This can take a significant amount of time.
     *   **Notes**:
         *   It includes `sleep` commands and a `MAX_OPERATIONS_BEFORE_LONG_PAUSE` variable to help manage GitHub API rate limits. If you hit rate limits, you might need to wait (often an hour) and resume, possibly by commenting out already processed repositories from `REPO_LIST`.
@@ -102,11 +98,7 @@ The GitHub Action set up above only works for *newly created* issues. If you hav
 4.  **`categorize-project-items.sh`**
     *   **Purpose**: Updates the status of items in your project based on the current state (open/closed) of their linked issues. Can operate on all items in the project or be filtered to items from specific repositories. The script assumes your project's status field is named "Status".
     *   **Action**:
-        1.  Configure the `categorize-project-items.sh` script:
-            *   Set `OWNER_NAME` (owner of the project and, if filtering, of the repositories listed in `REPO_LIST`) and `PROJECT_NUMBER`. `OWNER_NAME` is mandatory if `REPO_LIST` is populated.
-            *   Set `OPEN_ISSUE_STATUS` to the name of the status option in your project that should be assigned to open issues (e.g., "Todo", "Backlog").
-            *   Set `CLOSED_ISSUE_STATUS` to the name of the status option for closed issues (e.g., "Done", "Completed").
-            *   Optionally, populate `REPO_LIST` with specific repository names if you want to only process project items linked to issues from these repositories (which must belong to `OWNER_NAME`). If `REPO_LIST` is left empty (default), the script processes all relevant items in the project regardless of their source repository.
+        1.  Ensure `OWNER_NAME`, `PROJECT_NUMBER`, `OPEN_ISSUE_STATUS`, `CLOSED_ISSUE_STATUS`, and optionally `REPO_LIST` are correctly set in `config.sh`.
         2.  Run the script: `bash ./categorize-project-items.sh`.
     *   **Notes**:
         *   This script can also be run periodically to ensure project item statuses reflect the actual issue states if they are changed manually or by other processes outside the project board.

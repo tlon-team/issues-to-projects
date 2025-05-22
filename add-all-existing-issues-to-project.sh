@@ -1,28 +1,29 @@
 #!/opt/homebrew/bin/bash
 
-# --- Configuration ---
-# !!! IMPORTANT: Configure these variables !!!
-OWNER_NAME="GITHUB_OWNER" # Replace with your GitHub organization or user name
-PROJECT_NUMBER="PROJECT_NUMBER"     # Replace with your GitHub project number (the number, not the Node ID)
-
-# Define the list of repositories to process.
-# You can get a list of all repos for your owner (organization or user) with a command like:
-# gh repo list YOUR_GITHUB_OWNER --limit 1000 --json name -q '.[] | .name' # if you want just names
-REPO_LIST=(
-    "YOUR_EXAMPLE_REPO_1"
-    "YOUR_EXAMPLE_REPO_2"
-    # Add more repository names here (not full "OWNER/REPO" paths)
-)
-
-# Control repository scope:
-# If REPO_LIST is empty, the script will attempt to process all repositories for the OWNER_NAME.
-# If REPO_LIST is populated with repository names, these will be combined with OWNER_NAME.
+# Source the central configuration file
+CONFIG_FILE_PATH="$(dirname "$0")/config.sh"
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    source "$CONFIG_FILE_PATH"
+else
+    echo "Error: Configuration file config.sh not found in the script's directory." >&2
+    echo "Please create it (e.g., from config.sh.example) and configure your variables." >&2
+    exit 1
+fi
 
 # --- Initial Checks and Repo List Population ---
-# OWNER_NAME must be set correctly, as it's used to construct full repository paths or to fetch all repositories.
-if [ "$OWNER_NAME" == "GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then # Note: GITHUB_OWNER is the placeholder here
-    echo "Error: OWNER_NAME is not configured or is set to the placeholder 'GITHUB_OWNER'." >&2
-    echo "OWNER_NAME is required." >&2
+# Variables are now sourced from config.sh
+
+# OWNER_NAME must be set correctly in config.sh
+if [ "$OWNER_NAME" == "YOUR_GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then
+    echo "Error: OWNER_NAME is not configured in config.sh or is still set to the placeholder 'YOUR_GITHUB_OWNER'." >&2
+    echo "Please update config.sh." >&2
+    exit 1
+fi
+
+# PROJECT_NUMBER must be set correctly in config.sh
+if [ "$PROJECT_NUMBER" == "YOUR_PROJECT_NUMBER" ] || [ -z "$PROJECT_NUMBER" ]; then
+    echo "Error: PROJECT_NUMBER is not configured in config.sh or is still set to the placeholder 'YOUR_PROJECT_NUMBER'." >&2
+    echo "Please update config.sh." >&2
     exit 1
 fi
 

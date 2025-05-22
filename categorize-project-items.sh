@@ -3,35 +3,49 @@
 set -e # Exit on most errors
 # set -x # Uncomment for detailed debugging
 
-# --- Configuration ---
-# !!! IMPORTANT: Configure these variables to match your project's setup !!!
-OWNER_NAME="YOUR_GITHUB_OWNER" # Replace with your GitHub organization or user name
-PROJECT_NUMBER="YOUR_PROJECT_NUMBER"     # Replace with your GitHub project number (the number, not the Node ID)
-# The name of the project status field is typically "Status". This is assumed by the script.
-STATUS_FIELD_NAME="Status"
-OPEN_ISSUE_STATUS="Todo"            # Replace with the name of the status option in your project for OPEN issues (e.g., "Todo", "Backlog")
-CLOSED_ISSUE_STATUS="Done"          # Replace with the name of the status option in your project for CLOSED issues (e.g., "Done", "Completed")
+# Source the central configuration file
+CONFIG_FILE_PATH="$(dirname "$0")/config.sh"
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    source "$CONFIG_FILE_PATH"
+else
+    echo "Error: Configuration file config.sh not found in the script's directory." >&2
+    echo "Please create it (e.g., from config.sh.example) and configure your variables." >&2
+    exit 1
+fi
 
-# REPO_LIST: Define specific repository names (not full paths, e.g., "my-repo") to filter project items by.
-# If REPO_LIST is empty (default), the script considers items linked to issues from *any* repository within the project.
-# If REPO_LIST is populated, OWNER_NAME must be configured, and only items linked to issues from
-# repositories matching OWNER_NAME/REPO_NAME_FROM_LIST will be processed.
-REPO_LIST=(
-    # "YOUR_EXAMPLE_REPO_1"
-    # "YOUR_EXAMPLE_REPO_2"
-)
+# The name of the project status field is typically "Status". This is assumed by the script.
+STATUS_FIELD_NAME="Status" # This remains hardcoded as per previous decision.
 
 # --- Initial Checks ---
-if [ ${#REPO_LIST[@]} -gt 0 ]; then
-    # If REPO_LIST is used for filtering, OWNER_NAME (of the repositories) must be correctly set.
-    # Note: The script's OWNER_NAME variable is also used for the project owner.
-    # This assumes the project owner is the same as the repository owner when filtering.
-    if [ "$OWNER_NAME" == "YOUR_GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then
-        echo "Error: REPO_LIST is populated for filtering, but OWNER_NAME (repository owner) is not configured or is set to the placeholder 'YOUR_GITHUB_OWNER'." >&2
-        echo "Please configure OWNER_NAME." >&2
-        exit 1
-    fi
+# Variables are now sourced from config.sh
+
+# OWNER_NAME must be set correctly in config.sh
+if [ "$OWNER_NAME" == "YOUR_GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then
+    echo "Error: OWNER_NAME is not configured in config.sh or is still set to the placeholder 'YOUR_GITHUB_OWNER'." >&2
+    echo "Please update config.sh." >&2
+    exit 1
 fi
+
+# PROJECT_NUMBER must be set correctly in config.sh
+if [ "$PROJECT_NUMBER" == "YOUR_PROJECT_NUMBER" ] || [ -z "$PROJECT_NUMBER" ]; then
+    echo "Error: PROJECT_NUMBER is not configured in config.sh or is still set to the placeholder 'YOUR_PROJECT_NUMBER'." >&2
+    echo "Please update config.sh." >&2
+    exit 1
+fi
+
+# OPEN_ISSUE_STATUS and CLOSED_ISSUE_STATUS must be set (they have defaults in config.sh, but check they are not empty)
+if [ -z "$OPEN_ISSUE_STATUS" ]; then
+    echo "Error: OPEN_ISSUE_STATUS is not configured (or is empty) in config.sh." >&2
+    echo "Please update config.sh." >&2
+    exit 1
+fi
+if [ -z "$CLOSED_ISSUE_STATUS" ]; then
+    echo "Error: CLOSED_ISSUE_STATUS is not configured (or is empty) in config.sh." >&2
+    echo "Please update config.sh." >&2
+    exit 1
+fi
+
+# If REPO_LIST (from config.sh) is populated for filtering, the OWNER_NAME check above already covers its requirement.
 
 # --- Get Project and Field Details ---
 echo "Fetching Project Node ID for $OWNER_NAME/projects/$PROJECT_NUMBER..."
