@@ -60,6 +60,7 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
     *   **Action**:
         1.  Locate the `add-issues-to-project.yml` file provided in *this* automation scripts repository.
         2.  **Customize it**: Open this YAML file. You **must** change the `project-url` to point to your organization and project number (e.g., `https://github.com/orgs/YOUR_GITHUB_ORGANIZATION/projects/YOUR_PROJECT_NUMBER`).
+        3.  By default, this action will add all issues to the project board, regardless of their status, tag, etc. If you want to filter issues based on specific criteria (e.g., only open issues), you can modify the script accordingly.
         3.  Save this customized `add-issues-to-project.yml` file somewhere on your local system.
         4.  In the `batch-deploy-add-new-issues-workflow.sh` script, update the `WORKFLOW_FILE_PATH` variable to point to the location where you saved your customized YAML file.
         5.  Configure the `REPO_LIST` in `batch-deploy-add-new-issues-workflow.sh` with the target repositories.
