@@ -18,24 +18,15 @@ REPO_LIST=(
 # This is to help manage GitHub API rate limits. Adjust as needed.
 # GitHub's API rate limit for authenticated users is typically 5000 requests per hour.
 # Adding an item is one request. Listing issues also consumes requests.
-MAX_OPERATIONS_BEFORE_LONG_PAUSE=200 # Adjusted to a more conservative default
-OPERATIONS_COUNT=0
 
 echo "--- Starting script to add issues to project ---"
 echo "Processing repos in this batch: ${REPO_LIST[*]}"
-echo "Will suggest a longer pause after approximately $MAX_OPERATIONS_BEFORE_LONG_PAUSE item additions."
 sleep 3
 
 # --- Process Repositories ---
 for repo_full_name in "${REPO_LIST[@]}"; do
-    if (( OPERATIONS_COUNT >= MAX_OPERATIONS_BEFORE_LONG_PAUSE )); then
-        echo "INFO: Reached $MAX_OPERATIONS_BEFORE_LONG_PAUSE operations. Suggesting a longer pause (e.g., 15-30 mins) before processing more repos to avoid rate limits."
-        echo "Current repo to process next would be: $repo_full_name"
-        exit 0
-    fi
-
     echo "-----------------------------------------------------"
-    echo "Processing repository for adding issues: $repo_full_name (Operation count: $OPERATIONS_COUNT)"
+    echo "Processing repository for adding issues: $repo_full_name"
     echo "Pausing for 5 seconds before fetching issues for $repo_full_name..."
     sleep 5 # Pause before even listing issues for a repo
 
@@ -68,12 +59,6 @@ for repo_full_name in "${REPO_LIST[@]}"; do
     echo "Found ${#ISSUE_URLS[@]} issues in $repo_full_name. Attempting to add to project $PROJECT_NUMBER..."
 
     for issue_url in "${ISSUE_URLS[@]}"; do
-        if (( OPERATIONS_COUNT >= MAX_OPERATIONS_BEFORE_LONG_PAUSE )); then
-            echo "INFO: Reached $MAX_OPERATIONS_BEFORE_LONG_PAUSE operations during issue processing. Suggesting a longer pause."
-            echo "Next issue to process would be: $issue_url from $repo_full_name"
-            exit 0
-        fi
-
         echo -n "  Attempting to add issue (URL: $issue_url)... "
         # Increased sleep BEFORE each item-add call
         # For a 5000 limit/hour, roughly 1 operation every 0.72 seconds.
@@ -83,7 +68,6 @@ for repo_full_name in "${REPO_LIST[@]}"; do
         ADD_CMD_OUTPUT=""
         if ADD_CMD_OUTPUT=$(gh project item-add "$PROJECT_NUMBER" --owner "$ORG_NAME" --url "$issue_url" 2>&1); then
             echo "Successfully added."
-            ((OPERATIONS_COUNT++))
         else
             if [[ "$ADD_CMD_OUTPUT" == *"API rate limit exceeded"* ]]; then
                 echo "ERROR: API rate limit exceeded while adding issue $issue_url."
@@ -102,4 +86,4 @@ for repo_full_name in "${REPO_LIST[@]}"; do
 done
 
 echo "-----------------------------------------------------"
-echo "Finished adding all issues from the current batch of repositories. Total operations: $OPERATIONS_COUNT"
+echo "Finished adding all issues from the current batch of repositories."
