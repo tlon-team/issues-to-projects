@@ -1,10 +1,10 @@
-# GitHub Multi-Repo to Project Automation Scripts
+# Scripts to automatically add issues from multiple repos to a project
 
-This repository contains a collection of shell scripts designed to help manage GitHub issues across multiple repositories and consolidate them into a GitHub Project. This is a common challenge, as highlighted in discussions like [this GitHub Community thread](https://github.com/orgs/community/discussions/47803).
+This repository contains a collection of shell scripts designed to automate the addition of issues in multiple repos to a specific project. This is a common challenge, as highlighted in discussions like [this GitHub Community thread](https://github.com/orgs/community/discussions/47803).
 
 These scripts leverage the GitHub CLI (`gh`) and `jq` to automate tasks such as adding all existing issues from multiple repositories to a project, categorizing items in a project based on linked issue status, and deploying GitHub Actions workflows to multiple repositories.
 
-**Important Notice:** These scripts were developed for personal use and are shared in the hope that they might be useful to others. They have not been thoroughly tested in all environments or scenarios. Users should review the scripts and test them carefully before running them in a production environment. Contributions, bug fixes, and improvements are welcome! Please feel free to open a pull request.
+**Important Notice:** These scripts were developed for personal use and are shared in the hope that they might be useful to others. They have not been thoroughly tested in all environments or scenarios. Users should review the scripts and test them carefully before running them in a production environment. Contributions, bug fixes, and improvements are welcome—see [Contributing](#contributing) below.
 
 ## Prerequisites
 
