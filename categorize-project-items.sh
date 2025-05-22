@@ -12,13 +12,26 @@ STATUS_FIELD_NAME="Status"
 OPEN_ISSUE_STATUS="Todo"            # Replace with the name of the status option in your project for OPEN issues (e.g., "Todo", "Backlog")
 CLOSED_ISSUE_STATUS="Done"          # Replace with the name of the status option in your project for CLOSED issues (e.g., "Done", "Completed")
 
-# REPO_LIST: Define specific repositories to filter project items by.
+# REPO_LIST: Define specific repository names (not full paths, e.g., "my-repo") to filter project items by.
 # If REPO_LIST is empty (default), the script considers items linked to issues from *any* repository within the project.
-# If REPO_LIST is populated, only items linked to issues from repositories listed in REPO_LIST will be processed.
+# If REPO_LIST is populated, OWNER_NAME must be configured, and only items linked to issues from
+# repositories matching OWNER_NAME/REPO_NAME_FROM_LIST will be processed.
 REPO_LIST=(
-    # "OWNER_NAME/REPO_NAME_1"
-    # "OWNER_NAME/REPO_NAME_2"
+    # "YOUR_EXAMPLE_REPO_1"
+    # "YOUR_EXAMPLE_REPO_2"
 )
+
+# --- Initial Checks ---
+if [ ${#REPO_LIST[@]} -gt 0 ]; then
+    # If REPO_LIST is used for filtering, OWNER_NAME (of the repositories) must be correctly set.
+    # Note: The script's OWNER_NAME variable is also used for the project owner.
+    # This assumes the project owner is the same as the repository owner when filtering.
+    if [ "$OWNER_NAME" == "YOUR_GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then
+        echo "Error: REPO_LIST is populated for filtering, but OWNER_NAME (repository owner) is not configured or is set to the placeholder 'YOUR_GITHUB_OWNER'." >&2
+        echo "Please configure OWNER_NAME." >&2
+        exit 1
+    fi
+fi
 
 # --- Get Project and Field Details ---
 echo "Fetching Project Node ID for $OWNER_NAME/projects/$PROJECT_NUMBER..."
@@ -77,15 +90,17 @@ while IFS= read -r item_json; do
 
             if [ -n "$repo_full_name_from_issue" ]; then
                 is_repo_in_list=false
-                for listed_repo in "${REPO_LIST[@]}"; do
-                    if [[ "$listed_repo" == "$repo_full_name_from_issue" ]]; then
+                for listed_repo_short_name in "${REPO_LIST[@]}"; do
+                    # Construct the full name from REPO_LIST entry using the script's configured OWNER_NAME
+                    full_listed_repo_name_to_match="$OWNER_NAME/$listed_repo_short_name"
+                    if [[ "$full_listed_repo_name_to_match" == "$repo_full_name_from_issue" ]]; then
                         is_repo_in_list=true
                         break
                     fi
                 done
                 if ! $is_repo_in_list; then
                     process_this_item=false
-                    echo "  Skipping item: Repository '$repo_full_name_from_issue' is not in the specified REPO_LIST."
+                    echo "  Skipping item: Repository '$repo_full_name_from_issue' does not match any in the specified REPO_LIST for owner '$OWNER_NAME'."
                 fi
             else
                 process_this_item=false

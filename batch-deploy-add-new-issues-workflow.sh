@@ -12,24 +12,27 @@ WORKFLOW_FILE_PATH="YOUR_PATH_TO/add-issues-to-project.yml" # Replace with the a
 
 OWNER_NAME="YOUR_GITHUB_OWNER"      # Replace with your GitHub organization or user name. Used if PROCESS_ALL_REPOS is true.
 
-# REPO_LIST: Define specific repositories to process.
+# REPO_LIST: Define specific repository names (not full paths, e.g., "my-repo") to process.
+# These names will be combined with OWNER_NAME (e.g., OWNER_NAME/my-repo).
 # If REPO_LIST is empty, the script will attempt to deploy the workflow to all repositories for the OWNER_NAME.
-# You can get a list of all repos for your owner (organization or user) with a command like:
-# gh repo list YOUR_GITHUB_OWNER --limit 1000 --json nameWithOwner -q '.[] | .nameWithOwner'
 REPO_LIST=(
-  # "YOUR_GITHUB_OWNER/YOUR_EXAMPLE_REPO_1"
-  # "YOUR_GITHUB_OWNER/YOUR_EXAMPLE_REPO_2"
-  # Add more repositories here, e.g., "YOUR_GITHUB_OWNER/ANOTHER_REPO"
+  # "YOUR_EXAMPLE_REPO_1"
+  # "YOUR_EXAMPLE_REPO_2"
+  # Add more repository names here
 )
 # --- End Configuration ---
 
 # --- Initial Checks and Repo List Population ---
+# OWNER_NAME must be set correctly, as it's used to construct full repository paths or to fetch all repositories.
+if [ "$OWNER_NAME" == "YOUR_GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then
+    echo "Error: OWNER_NAME is not configured or is set to the placeholder 'YOUR_GITHUB_OWNER'." >&2
+    echo "OWNER_NAME is required." >&2
+    exit 1
+fi
+
+ACTUAL_REPO_LIST=()
+
 if [ ${#REPO_LIST[@]} -eq 0 ]; then
-    if [ "$OWNER_NAME" == "YOUR_GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then
-        echo "Error: REPO_LIST is empty and OWNER_NAME is not configured or is set to the placeholder 'YOUR_GITHUB_OWNER'." >&2
-        echo "Please configure OWNER_NAME to process all its repositories, or populate REPO_LIST." >&2
-        exit 1
-    fi
     echo "REPO_LIST is empty. Fetching all repositories for owner $OWNER_NAME..."
     ALL_REPOS_OUTPUT=$(gh repo list "$OWNER_NAME" --limit 2000 --json nameWithOwner -q '.[] | .nameWithOwner' 2>&1)
     GH_EXIT_CODE=$?
@@ -49,17 +52,18 @@ if [ ${#REPO_LIST[@]} -eq 0 ]; then
         echo "No repositories found for owner $OWNER_NAME. Exiting."
         exit 0
     else
-        REPO_LIST=("${TEMP_REPO_LIST[@]}") # Overwrite REPO_LIST with all fetched repos
-        echo "Successfully fetched ${#REPO_LIST[@]} repositories for owner $OWNER_NAME."
+        ACTUAL_REPO_LIST=("${TEMP_REPO_LIST[@]}") # These are already full names
+        echo "Successfully fetched ${#ACTUAL_REPO_LIST[@]} repositories for owner $OWNER_NAME."
     fi
-elif [ ${#REPO_LIST[@]} -gt 0 ]; then
-    echo "Processing ${#REPO_LIST[@]} repositories specified in REPO_LIST."
+else # REPO_LIST is not empty, user provided short names
+    echo "Processing ${#REPO_LIST[@]} repository names specified in REPO_LIST for owner $OWNER_NAME."
+    for short_repo_name in "${REPO_LIST[@]}"; do
+        ACTUAL_REPO_LIST+=("$OWNER_NAME/$short_repo_name")
+    done
 fi
-# If REPO_LIST was initially empty and fetching failed to populate it, or if it was empty and OWNER_NAME was not set,
-# script would have exited. If REPO_LIST was populated initially, it proceeds.
 
-if [ ${#REPO_LIST[@]} -eq 0 ]; then
-    echo "Error: No repositories to process. REPO_LIST is empty and could not be populated (e.g., OWNER_NAME not set or no repos found)." >&2
+if [ ${#ACTUAL_REPO_LIST[@]} -eq 0 ]; then
+    echo "Error: No repositories to process after checking REPO_LIST and fetching." >&2
     exit 1
 fi
 
@@ -74,13 +78,13 @@ WORKFLOW_FILE_CONTENT=$(cat "$WORKFLOW_FILE_PATH")
 WORKFLOW_DESTINATION_DIR=".github/workflows"
 WORKFLOW_DESTINATION_FILE="$WORKFLOW_DESTINATION_DIR/$WORKFLOW_FILE_BASENAME"
 
-for repo in "${REPO_LIST[@]}"; do
-  echo "Processing $repo..."
+for repo_full_name in "${ACTUAL_REPO_LIST[@]}"; do
+  echo "Processing $repo_full_name..."
   TEMP_DIR=$(mktemp -d -t ci-workflow-adder-XXXXXX)
-  echo "  Cloning $repo into $TEMP_DIR..."
+  echo "  Cloning $repo_full_name into $TEMP_DIR..."
   # Clone only the default branch with minimal history
-  if ! git clone --depth 1 "https://github.com/$repo.git" "$TEMP_DIR"; then
-    echo "  Error: Failed to clone $repo. Skipping."
+  if ! git clone --depth 1 "https://github.com/$repo_full_name.git" "$TEMP_DIR"; then
+    echo "  Error: Failed to clone $repo_full_name. Skipping."
     rm -rf "$TEMP_DIR" # Clean up temp directory
     continue
   fi
@@ -100,20 +104,20 @@ for repo in "${REPO_LIST[@]}"; do
       COMMIT_MESSAGE="CI: Add/Update workflow '$WORKFLOW_FILE_BASENAME' to manage project issues"
       echo "  Committing with message: '$COMMIT_MESSAGE'..."
       git commit -m "$COMMIT_MESSAGE"
-      echo "  Pushing changes to $repo..."
+      echo "  Pushing changes to $repo_full_name..."
       if ! git push; then
-        echo "  Error: Failed to push changes to $repo. Check permissions or remote status."
+        echo "  Error: Failed to push changes to $repo_full_name. Check permissions or remote status."
       else
-        echo "  Successfully pushed changes to $repo."
+        echo "  Successfully pushed changes to $repo_full_name."
       fi
     else
-      echo "  No changes to commit for workflow file in $repo. It might be identical or already staged."
+      echo "  No changes to commit for workflow file in $repo_full_name. It might be identical or already staged."
     fi
   )
 
   echo "  Cleaning up temporary directory $TEMP_DIR..."
   rm -rf "$TEMP_DIR"
-  echo "  Finished processing $repo."
+  echo "  Finished processing $repo_full_name."
   echo "---"
 done
 

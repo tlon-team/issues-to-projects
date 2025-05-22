@@ -28,7 +28,9 @@ Before using these scripts, ensure you have the following installed and configur
 
 *   Before running any script, open it in a text editor.
 *   Locate the "Configuration" section near the top.
-*   Replace placeholder values (e.g., `YOUR_GITHUB_OWNER`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
+*   Replace placeholder values (e.g., `YOUR_GITHUB_OWNER`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_EXAMPLE_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
+*   **`OWNER_NAME`**: This variable (e.g., `YOUR_GITHUB_OWNER`) must always be set to your GitHub username or organization name. It's used to construct full repository paths (e.g., `OWNER_NAME/REPO_NAME`) or to fetch all repositories if `REPO_LIST` is empty.
+*   **`REPO_LIST`**: When populating this list, use only the repository names (e.g., `my-cool-repo`), not the full `owner/repo` path. The script will combine `OWNER_NAME` with these names.
 *   Make scripts executable: `chmod +x script-name.sh` (e.g., `chmod +x add-all-existing-issues-to-project.sh`).
 
 ## Usage
@@ -53,8 +55,8 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
             *   **Copy the token immediately.** You will not be able to see it again.
         2.  Configure the `automate-github-secrets.sh` script:
             *   Set `PAT_VALUE` with the PAT you just generated.
-            *   Set `OWNER_NAME` if you intend to process all repositories (by leaving `REPO_LIST` empty).
-            *   Populate `REPO_LIST` with specific repositories if you don't want to process all of them. If `REPO_LIST` is empty, all repositories for `OWNER_NAME` will be targeted.
+            *   Set `OWNER_NAME` to your GitHub username or organization name. This is mandatory.
+            *   Optionally, populate `REPO_LIST` with specific repository names (e.g., `"my-repo-1"`, `"another-repo"`). If `REPO_LIST` is empty, the script will target all repositories under `OWNER_NAME`.
         3.  Run the script: `bash ./automate-github-secrets.sh`.
     *   **Notes**:
         *   **Security**: Be very careful with your PAT. Once you've run this script to set the secrets in your repositories, you might want to clear the `PAT_VALUE` from the script file or delete the script if you don't need to run it again soon, to avoid accidentally exposing the PAT if the script is shared or committed.
@@ -71,8 +73,8 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
         3.  Save this customized `add-issues-to-project.yml` file somewhere on your local system.
         4.  Configure the `batch-deploy-add-new-issues-workflow.sh` script:
             *   Update `WORKFLOW_FILE_PATH` to point to your customized YAML file.
-            *   Set `OWNER_NAME` if you intend to deploy to all repositories (by leaving `REPO_LIST` empty).
-            *   Populate `REPO_LIST` with specific repositories if you don't want to deploy to all of them. If `REPO_LIST` is empty, all repositories for `OWNER_NAME` will be targeted.
+            *   Set `OWNER_NAME` to your GitHub username or organization name. This is mandatory.
+            *   Optionally, populate `REPO_LIST` with specific repository names. If `REPO_LIST` is empty, the script will target all repositories under `OWNER_NAME`.
         5.  Run the script: `bash ./batch-deploy-add-new-issues-workflow.sh`.
     *   **Notes**:
         *   This script performs `git clone`, `git commit`, and `git push` operations. Ensure your `gh` CLI is authenticated with rights to push to these repositories, or that your Git credential manager is set up.
@@ -86,11 +88,12 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
 The GitHub Action set up above only works for *newly created* issues. If you have existing issues in your repositories that you want to add to the project, use the following scripts.
 
 3.  **`add-all-existing-issues-to-project.sh`**
-    *   **Purpose**: Adds all existing issues (both open and closed) from specified repositories to the project. If no repositories are specified, it targets all repositories for an owner.
+    *   **Purpose**: Adds all existing issues (both open and closed) from specified repositories to the project.
     *   **Action**:
         1.  Configure the `add-all-existing-issues-to-project.sh` script:
-            *   Set `OWNER_NAME` (required if `REPO_LIST` is empty) and `PROJECT_NUMBER`.
-            *   Populate `REPO_LIST` with specific repositories. If `REPO_LIST` is left empty, the script will process all repositories under `OWNER_NAME`.
+            *   Set `OWNER_NAME` to your GitHub username or organization name. This is mandatory.
+            *   Set `PROJECT_NUMBER`.
+            *   Optionally, populate `REPO_LIST` with specific repository names. If `REPO_LIST` is left empty, the script will process all repositories under `OWNER_NAME`.
         2.  Run the script: `bash ./add-all-existing-issues-to-project.sh`. This can take a significant amount of time.
     *   **Notes**:
         *   It includes `sleep` commands and a `MAX_OPERATIONS_BEFORE_LONG_PAUSE` variable to help manage GitHub API rate limits. If you hit rate limits, you might need to wait (often an hour) and resume, possibly by commenting out already processed repositories from `REPO_LIST`.
@@ -100,10 +103,10 @@ The GitHub Action set up above only works for *newly created* issues. If you hav
     *   **Purpose**: Updates the status of items in your project based on the current state (open/closed) of their linked issues. Can operate on all items in the project or be filtered to items from specific repositories. The script assumes your project's status field is named "Status".
     *   **Action**:
         1.  Configure the `categorize-project-items.sh` script:
-            *   Set `OWNER_NAME` (for the project) and `PROJECT_NUMBER`.
+            *   Set `OWNER_NAME` (owner of the project and, if filtering, of the repositories listed in `REPO_LIST`) and `PROJECT_NUMBER`. `OWNER_NAME` is mandatory if `REPO_LIST` is populated.
             *   Set `OPEN_ISSUE_STATUS` to the name of the status option in your project that should be assigned to open issues (e.g., "Todo", "Backlog").
             *   Set `CLOSED_ISSUE_STATUS` to the name of the status option for closed issues (e.g., "Done", "Completed").
-            *   Populate `REPO_LIST` if you want to only process project items linked to issues from these specific repositories. If `REPO_LIST` is left empty (default), the script processes all relevant items in the project regardless of their source repository.
+            *   Optionally, populate `REPO_LIST` with specific repository names if you want to only process project items linked to issues from these repositories (which must belong to `OWNER_NAME`). If `REPO_LIST` is left empty (default), the script processes all relevant items in the project regardless of their source repository.
         2.  Run the script: `bash ./categorize-project-items.sh`.
     *   **Notes**:
         *   This script can also be run periodically to ensure project item statuses reflect the actual issue states if they are changed manually or by other processes outside the project board.
