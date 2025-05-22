@@ -13,7 +13,6 @@
 # --- General GitHub Settings ---
 
 # Your GitHub username or organization name.
-# This is mandatory for all scripts.
 # Example: OWNER_NAME="my-github-username"
 # Example: OWNER_NAME="my-cool-organization"
 OWNER_NAME="YOUR_GITHUB_OWNER"
@@ -25,11 +24,8 @@ PROJECT_NUMBER="YOUR_PROJECT_NUMBER"
 
 # --- Repository List ---
 
-# Define specific repository names (not full paths, e.g., "my-repo") to process.
-# These names will be combined with OWNER_NAME (e.g., OWNER_NAME/my-repo).
-# If REPO_LIST is empty, scripts that support it will attempt to process all repositories for the OWNER_NAME.
-# Used by: automate-github-secrets.sh, batch-deploy-add-new-issues-workflow.sh,
-#          add-all-existing-issues-to-project.sh, categorize-project-items.sh (for filtering)
+# The list of repos that you want the scripts to operate on. If empty, all repos in OWNER_NAME will be considered.
+# List repos by their name only, e.g. if the URL is https://github.com/OWNER_NAME/my-repo, you should use "my-repo".
 # Example: REPO_LIST=("my-first-repo" "another-project-repo")
 REPO_LIST=(
   # "YOUR_EXAMPLE_REPO_1"
