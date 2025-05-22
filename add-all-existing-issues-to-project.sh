@@ -2,17 +2,17 @@
 
 # --- Configuration ---
 # !!! IMPORTANT: Configure these variables !!!
-ORG_NAME="YOUR_GITHUB_ORGANIZATION" # Replace with your GitHub organization name
-PROJECT_NUMBER="YOUR_PROJECT_NUMBER"     # Replace with your GitHub project number (the number, not the Node ID)
+OWNER_NAME="GITHUB_OWNER" # Replace with your GitHub organization or user name
+PROJECT_NUMBER="PROJECT_NUMBER"     # Replace with your GitHub project number (the number, not the Node ID)
 
 # Define the list of repositories to process.
-# You can get a list of all repos for your organization with a command like:
-# gh repo list YOUR_GITHUB_ORGANIZATION --limit 1000 --json nameWithOwner -q '.[].nameWithOwner'
+# You can get a list of all repos for your owner (organization or user) with a command like:
+# gh repo list YOUR_GITHUB_OWNER --limit 1000 --json nameWithOwner -q '.[].nameWithOwner'
 REPO_LIST=(
     "YOUR_GITHUB_ORGANIZATION/YOUR_EXAMPLE_REPO_1"
     "YOUR_GITHUB_ORGANIZATION/YOUR_EXAMPLE_REPO_2"
     # Add more repositories here, in the format "OWNER/REPO_NAME"
-    # e.g., "YOUR_GITHUB_ORGANIZATION/ANOTHER_REPO"
+    # e.g., "YOUR_GITHUB_OWNER/ANOTHER_REPO"
 )
 # Maximum number of item-add operations before the script suggests a longer pause.
 # This is to help manage GitHub API rate limits. Adjust as needed.
@@ -66,7 +66,7 @@ for repo_full_name in "${REPO_LIST[@]}"; do
         sleep 4
 
         ADD_CMD_OUTPUT=""
-        if ADD_CMD_OUTPUT=$(gh project item-add "$PROJECT_NUMBER" --owner "$ORG_NAME" --url "$issue_url" 2>&1); then
+        if ADD_CMD_OUTPUT=$(gh project item-add "$PROJECT_NUMBER" --owner "$OWNER_NAME" --url "$issue_url" 2>&1); then
             echo "Successfully added."
         else
             if [[ "$ADD_CMD_OUTPUT" == *"API rate limit exceeded"* ]]; then
