@@ -46,13 +46,17 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
             *   Give your token a descriptive name (e.g., "multi-repo-project-automation").
             *   Set an expiration date.
             *   **Required scopes**:
-                *   `repo`: Full control of private repositories (needed to add workflow files, set secrets in target repos).
+                *   `repo`: Full control of private repositories (needed to add workflow files, set secrets in target repos, list repos if processing all).
                 *   `project`: Read and write projects (to allow the `actions/add-to-project` action to manage project items).
                 *   `workflow`: Update GitHub Action workflows (needed by the `actions/add-to-project` workflow if it needs to make changes that require this scope, or if you are deploying workflows that modify other workflows).
             *   Click "Generate token".
             *   **Copy the token immediately.** You will not be able to see it again.
-        2.  Configure `PAT_VALUE` (with the PAT you just generated) and `REPO_LIST` in the `automate-github-secrets.sh` script.
-        3.  Run the script: `bash ./automate-github-secrets.sh`. It sets the `ADD_TO_PROJECT_PAT` secret in all repositories listed in its `REPO_LIST`.
+        2.  Configure the `automate-github-secrets.sh` script:
+            *   Set `PAT_VALUE` with the PAT you just generated.
+            *   Set `PROCESS_ALL_REPOS` to `true` or `false`.
+            *   If `PROCESS_ALL_REPOS="true"`, configure `OWNER_NAME`. The script will set secrets for all repositories under this owner.
+            *   If `PROCESS_ALL_REPOS="false"` (default), populate `REPO_LIST` with the specific repositories.
+        3.  Run the script: `bash ./automate-github-secrets.sh`.
     *   **Notes**:
         *   **Security**: Be very careful with your PAT. Once you've run this script to set the secrets in your repositories, you might want to clear the `PAT_VALUE` from the script file or delete the script if you don't need to run it again soon, to avoid accidentally exposing the PAT if the script is shared or committed.
         *   The secret name `ADD_TO_PROJECT_PAT` is a common convention for the `actions/add-to-project` action, but can be changed if your workflow uses a different secret name (you'd need to change it in this script and in your workflow YAML).
@@ -66,9 +70,12 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
             *   For a user project: `https://github.com/users/YOUR_USER_NAME/projects/YOUR_PROJECT_NUMBER`
         3.  By default, this action will add all issues to the project board, regardless of their status, tag, etc. If you want to filter issues based on specific criteria (e.g., only open issues), you can modify the script accordingly.
         3.  Save this customized `add-issues-to-project.yml` file somewhere on your local system.
-        4.  In the `batch-deploy-add-new-issues-workflow.sh` script, update the `WORKFLOW_FILE_PATH` variable to point to the location where you saved your customized YAML file.
-        5.  Configure the `REPO_LIST` in `batch-deploy-add-new-issues-workflow.sh` with the target repositories.
-        6.  Run the script: `bash ./batch-deploy-add-new-issues-workflow.sh`.
+        4.  Configure the `batch-deploy-add-new-issues-workflow.sh` script:
+            *   Update `WORKFLOW_FILE_PATH` to point to your customized YAML file.
+            *   Set `PROCESS_ALL_REPOS` to `true` or `false`.
+            *   If `PROCESS_ALL_REPOS="true"`, configure `OWNER_NAME`. The script will deploy the workflow to all repositories under this owner.
+            *   If `PROCESS_ALL_REPOS="false"` (default), populate `REPO_LIST` with the specific repositories.
+        5.  Run the script: `bash ./batch-deploy-add-new-issues-workflow.sh`.
     *   **Notes**:
         *   This script performs `git clone`, `git commit`, and `git push` operations. Ensure your `gh` CLI is authenticated with rights to push to these repositories, or that your Git credential manager is set up.
         *   The commit message is predefined in the script.
@@ -81,18 +88,27 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
 The GitHub Action set up above only works for *newly created* issues. If you have existing issues in your repositories that you want to add to the project, use the following scripts.
 
 3.  **`add-all-existing-issues-to-project.sh`**
-    *   **Purpose**: Adds all existing issues (both open and closed) from your specified repositories to the project.
+    *   **Purpose**: Adds all existing issues (both open and closed) from specified repositories (or all repositories for an owner) to the project.
     *   **Action**:
-        1.  Configure `OWNER_NAME`, `PROJECT_NUMBER`, and `REPO_LIST` in the `add-all-existing-issues-to-project.sh` script.
-        2.  Run the script: `bash ./add-all-existing-issues-to-project.sh`. This can take a significant amount of time depending on the number of issues and repositories.
+        1.  Configure the `add-all-existing-issues-to-project.sh` script:
+            *   Set `OWNER_NAME` and `PROJECT_NUMBER`.
+            *   Set `PROCESS_ALL_REPOS` to `true` or `false`.
+            *   If `PROCESS_ALL_REPOS="true"`, the script will process all repositories under `OWNER_NAME`.
+            *   If `PROCESS_ALL_REPOS="false"` (default), populate `REPO_LIST` with the specific repositories.
+        2.  Run the script: `bash ./add-all-existing-issues-to-project.sh`. This can take a significant amount of time.
     *   **Notes**:
         *   It includes `sleep` commands and a `MAX_OPERATIONS_BEFORE_LONG_PAUSE` variable to help manage GitHub API rate limits. If you hit rate limits, you might need to wait (often an hour) and resume, possibly by commenting out already processed repositories from `REPO_LIST`.
         *   The script will skip issues that are already in the project.
 
 4.  **`categorize-project-items.sh`**
-    *   **Purpose**: After adding existing issues (using the script above), this script updates their status in the project based on their current state in the repository. Open issues will be set to your "Todo" status (or equivalent), and closed issues to your "Done" status (or equivalent).
+    *   **Purpose**: Updates the status of items in your project based on the current state (open/closed) of their linked issues. Can operate on all items or be filtered by repository.
     *   **Action**:
-        1.  Configure the project details (`OWNER_NAME`, `PROJECT_NUMBER`) and your specific status field names (`STATUS_FIELD_NAME`, `TODO_OPTION_NAME`, `DONE_OPTION_NAME`) in the `categorize-project-items.sh` script. Ensure these names exactly match your project's setup.
+        1.  Configure the `categorize-project-items.sh` script:
+            *   Set `OWNER_NAME` (for the project) and `PROJECT_NUMBER`.
+            *   Set your specific status field names (`STATUS_FIELD_NAME`, `TODO_OPTION_NAME`, `DONE_OPTION_NAME`).
+            *   Set `PROCESS_ALL_REPOS` to `true` (default) or `false`.
+            *   If `PROCESS_ALL_REPOS="true"`, the script processes all relevant items in the project.
+            *   If `PROCESS_ALL_REPOS="false"`, populate `REPO_LIST` to only process items linked to issues from these specific repositories.
         2.  Run the script: `bash ./categorize-project-items.sh`.
     *   **Notes**:
         *   This script can also be run periodically to ensure project item statuses reflect the actual issue states if they are changed manually or by other processes outside the project board.

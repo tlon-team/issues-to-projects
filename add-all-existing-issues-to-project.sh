@@ -14,10 +14,45 @@ REPO_LIST=(
     # Add more repositories here, in the format "OWNER/REPO_NAME"
     # e.g., "YOUR_GITHUB_OWNER/ANOTHER_REPO"
 )
-# Maximum number of item-add operations before the script suggests a longer pause.
-# This is to help manage GitHub API rate limits. Adjust as needed.
-# GitHub's API rate limit for authenticated users is typically 5000 requests per hour.
-# Adding an item is one request. Listing issues also consumes requests.
+
+# Control repository scope:
+# If PROCESS_ALL_REPOS is true, REPO_LIST above will be ignored, and all repositories for OWNER_NAME will be processed.
+# If PROCESS_ALL_REPOS is false (default), only repositories in REPO_LIST will be processed.
+PROCESS_ALL_REPOS="false"
+
+# --- Initial Checks and Repo List Population ---
+if [ "$PROCESS_ALL_REPOS" == "true" ]; then
+    if [ "$OWNER_NAME" == "GITHUB_OWNER" ] || [ -z "$OWNER_NAME" ]; then # Check against default placeholder
+        echo "Error: PROCESS_ALL_REPOS is true, but OWNER_NAME is not configured or is set to the placeholder 'GITHUB_OWNER'." >&2
+        exit 1
+    fi
+    echo "PROCESS_ALL_REPOS is true. Fetching all repositories for owner $OWNER_NAME..."
+    ALL_REPOS_OUTPUT=$(gh repo list "$OWNER_NAME" --limit 2000 --json nameWithOwner -q '.[] | .nameWithOwner' 2>&1)
+    GH_EXIT_CODE=$?
+    if [ $GH_EXIT_CODE -ne 0 ] || [[ "$ALL_REPOS_OUTPUT" == *"Could not resolve"* || "$ALL_REPOS_OUTPUT" == *"HTTP"* ]]; then
+        echo "  ERROR: Failed to fetch repositories for owner '$OWNER_NAME'. Exit code: $GH_EXIT_CODE. Output: $ALL_REPOS_OUTPUT" >&2
+        exit 1
+    fi
+    
+    TEMP_REPO_LIST=()
+    while IFS= read -r repo_line; do
+        if [[ -n "$repo_line" ]]; then
+            TEMP_REPO_LIST+=("$repo_line")
+        fi
+    done < <(echo "$ALL_REPOS_OUTPUT")
+
+    if [ ${#TEMP_REPO_LIST[@]} -eq 0 ]; then
+        echo "No repositories found for owner $OWNER_NAME. Exiting."
+        exit 0
+    else
+        REPO_LIST=("${TEMP_REPO_LIST[@]}") # Overwrite REPO_LIST
+        echo "Successfully fetched ${#REPO_LIST[@]} repositories for owner $OWNER_NAME."
+    fi
+elif [ ${#REPO_LIST[@]} -eq 0 ]; then # PROCESS_ALL_REPOS is false
+    echo "Error: PROCESS_ALL_REPOS is false and REPO_LIST is empty. Nothing to process." >&2
+    echo "Please populate REPO_LIST in the script or set PROCESS_ALL_REPOS to true." >&2
+    exit 1
+fi
 
 echo "--- Starting script to add issues to project ---"
 echo "Processing repos in this batch: ${REPO_LIST[*]}"

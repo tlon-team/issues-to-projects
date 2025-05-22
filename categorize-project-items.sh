@@ -11,6 +11,22 @@ STATUS_FIELD_NAME="Status"         # Replace with the exact name of your project
 TODO_OPTION_NAME="Todo"            # Replace with the exact name of the option for 'To Do' items in your status field
 DONE_OPTION_NAME="Done"            # Replace with the exact name of the option for 'Done' items in your status field
 
+# Control repository scope for item processing:
+# If PROCESS_ALL_REPOS is true (default), the script considers items linked to issues from any repository within the project.
+# If PROCESS_ALL_REPOS is false, only items linked to issues from repositories listed in REPO_LIST will be processed.
+PROCESS_ALL_REPOS="true"
+REPO_LIST=(
+    # "OWNER_NAME/REPO_NAME_1"
+    # "OWNER_NAME/REPO_NAME_2"
+)
+
+# --- Initial Checks ---
+if [ "$PROCESS_ALL_REPOS" == "false" ] && [ ${#REPO_LIST[@]} -eq 0 ]; then
+    echo "Error: PROCESS_ALL_REPOS is set to false, but REPO_LIST is empty." >&2
+    echo "Please populate REPO_LIST or set PROCESS_ALL_REPOS to true to process items from all repositories." >&2
+    exit 1
+fi
+
 # --- Get Project and Field Details ---
 echo "Fetching Project Node ID for $OWNER_NAME/projects/$PROJECT_NUMBER..."
 PROJECT_NODE_ID=$(gh project list --owner "$OWNER_NAME" --format json | jq -r ".projects[] | select(.number == $PROJECT_NUMBER) | .id")
@@ -58,8 +74,42 @@ while IFS= read -r item_json; do
     echo "---"
     echo "Processing Project Item ID: $PROJECT_ITEM_ID (Title: \"$ITEM_TITLE\", Linked Issue URL: $ISSUE_URL)"
 
+    # Repository filtering logic
+    process_this_item=true
+    if [ "$PROCESS_ALL_REPOS" == "false" ]; then # REPO_LIST is guaranteed to be non-empty here due to earlier check
+        if [ -n "$ISSUE_URL" ] && [ "$ISSUE_URL" != "null" ]; then
+            # Extract owner/repo from issue URL (e.g., https://github.com/owner/repo/issues/123)
+            repo_full_name_from_issue=$(echo "$ISSUE_URL" | sed -n 's|https://github.com/\([^/]*\)/\([^/]*\)/issues/.*|\1/\2|p')
+
+            if [ -n "$repo_full_name_from_issue" ]; then
+                is_repo_in_list=false
+                for listed_repo in "${REPO_LIST[@]}"; do
+                    if [[ "$listed_repo" == "$repo_full_name_from_issue" ]]; then
+                        is_repo_in_list=true
+                        break
+                    fi
+                done
+                if ! $is_repo_in_list; then
+                    process_this_item=false
+                    echo "  Skipping item: Repository '$repo_full_name_from_issue' is not in the specified REPO_LIST."
+                fi
+            else
+                process_this_item=false
+                echo "  Skipping item: Could not determine repository from URL '$ISSUE_URL' for REPO_LIST filtering."
+            fi
+        else
+            process_this_item=false
+            echo "  Skipping item: No issue URL to check against REPO_LIST."
+        fi
+    fi
+
+    if ! $process_this_item; then
+        continue
+    fi
+
+    # Original check for issue URL validity before fetching state (still useful even if repo filtering passed or wasn't active)
     if [ -z "$ISSUE_URL" ] || [ "$ISSUE_URL" == "null" ]; then
-        echo "  Skipping item $PROJECT_ITEM_ID as it has no linked issue URL."
+        echo "  Skipping item $PROJECT_ITEM_ID as it has no linked issue URL (this check is redundant if filtering was already applied, but kept for safety)."
         continue
     fi
 
