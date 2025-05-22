@@ -1,6 +1,6 @@
 #!/bin/bash
-# You can get a list of all repos for your organization with a command like:
-# gh repo list YOUR_GITHUB_ORGANIZATION --limit 1000 --json nameWithOwner -q '.[].nameWithOwner'
+# You can get a list of all repos for your owner (organization or user) with a command like:
+# gh repo list YOUR_GITHUB_OWNER --limit 1000 --json nameWithOwner -q '.[].nameWithOwner'
 
 # !!! IMPORTANT: Configure these variables !!!
 PAT_VALUE="YOUR_GITHUB_PAT" # Replace with your GitHub Personal Access Token (PAT)
@@ -10,9 +10,9 @@ PAT_VALUE="YOUR_GITHUB_PAT" # Replace with your GitHub Personal Access Token (PA
                             # If your workflow uses a different secret name, update it here and in the workflow file.
 
 REPO_LIST=(
-  "YOUR_GITHUB_ORGANIZATION/YOUR_EXAMPLE_REPO_1"
-  "YOUR_GITHUB_ORGANIZATION/YOUR_EXAMPLE_REPO_2"
-  # Add more repositories here, e.g., "YOUR_GITHUB_ORGANIZATION/ANOTHER_REPO"
+  "YOUR_GITHUB_OWNER/YOUR_EXAMPLE_REPO_1"
+  "YOUR_GITHUB_OWNER/YOUR_EXAMPLE_REPO_2"
+  # Add more repositories here, e.g., "YOUR_GITHUB_OWNER/ANOTHER_REPO"
 )
 
 for repo in "${REPO_LIST[@]}"; do

@@ -12,7 +12,9 @@ jobs:
     steps:
       - uses: actions/add-to-project@v1.0.2
         with:
-          # You can target a project in a different organization
-          # to the issue
+          # You can target a project in a different organization or user account
+          # to the issue.
+          # For organization projects: https://github.com/orgs/ORG_NAME/projects/PROJECT_NUMBER
+          # For user projects: https://github.com/users/USER_NAME/projects/PROJECT_NUMBER
           project-url: https://github.com/orgs/tlon-team/projects/9
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}

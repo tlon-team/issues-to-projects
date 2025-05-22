@@ -2,7 +2,7 @@
 
 The purpose of this repository is to share a few scripts that together provide a solution to the following problem:
 
-> How can I set up GitHub so that whenever a new issue is created in any of my repositories (or a subset thereof), the issue is automatically added to some project?
+> How can I set up GitHub so that whenever a new issue is created in any of my repositories (or a subset thereof), the issue is automatically added to a project owned by my user or organization?
 
 GitHub [does not support this functionality natively](https://github.com/orgs/community/discussions/47803), hence the need for these scripts.
 
@@ -28,7 +28,7 @@ Before using these scripts, ensure you have the following installed and configur
 
 *   Before running any script, open it in a text editor.
 *   Locate the "Configuration" section near the top.
-*   Replace placeholder values (e.g., `YOUR_GITHUB_ORGANIZATION`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
+*   Replace placeholder values (e.g., `YOUR_GITHUB_OWNER`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
 *   Make scripts executable: `chmod +x script-name.sh` (e.g., `chmod +x add-all-existing-issues-to-project.sh`).
 
 ## Usage
@@ -61,7 +61,9 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
     *   **Purpose**: Deploys the GitHub Actions workflow (`add-issues-to-project.yml`) to all specified repositories. This workflow will automatically add any *newly created* issues in these repositories to your designated project.
     *   **Action**:
         1.  Locate the `add-issues-to-project.yml` file provided in *this* automation scripts repository.
-        2.  **Customize it**: Open this YAML file. You **must** change the `project-url` to point to your organization and project number (e.g., `https://github.com/orgs/YOUR_GITHUB_ORGANIZATION/projects/YOUR_PROJECT_NUMBER`).
+        2.  **Customize it**: Open this YAML file. You **must** change the `project-url` to point to your project.
+            *   For an organization project: `https://github.com/orgs/YOUR_ORG_NAME/projects/YOUR_PROJECT_NUMBER`
+            *   For a user project: `https://github.com/users/YOUR_USER_NAME/projects/YOUR_PROJECT_NUMBER`
         3.  By default, this action will add all issues to the project board, regardless of their status, tag, etc. If you want to filter issues based on specific criteria (e.g., only open issues), you can modify the script accordingly.
         3.  Save this customized `add-issues-to-project.yml` file somewhere on your local system.
         4.  In the `batch-deploy-add-new-issues-workflow.sh` script, update the `WORKFLOW_FILE_PATH` variable to point to the location where you saved your customized YAML file.
@@ -81,7 +83,7 @@ The GitHub Action set up above only works for *newly created* issues. If you hav
 3.  **`add-all-existing-issues-to-project.sh`**
     *   **Purpose**: Adds all existing issues (both open and closed) from your specified repositories to the project.
     *   **Action**:
-        1.  Configure `ORG_NAME`, `PROJECT_NUMBER`, and `REPO_LIST` in the `add-all-existing-issues-to-project.sh` script.
+        1.  Configure `OWNER_NAME`, `PROJECT_NUMBER`, and `REPO_LIST` in the `add-all-existing-issues-to-project.sh` script.
         2.  Run the script: `bash ./add-all-existing-issues-to-project.sh`. This can take a significant amount of time depending on the number of issues and repositories.
     *   **Notes**:
         *   It includes `sleep` commands and a `MAX_OPERATIONS_BEFORE_LONG_PAUSE` variable to help manage GitHub API rate limits. If you hit rate limits, you might need to wait (often an hour) and resume, possibly by commenting out already processed repositories from `REPO_LIST`.
@@ -90,7 +92,7 @@ The GitHub Action set up above only works for *newly created* issues. If you hav
 4.  **`categorize-project-items.sh`**
     *   **Purpose**: After adding existing issues (using the script above), this script updates their status in the project based on their current state in the repository. Open issues will be set to your "Todo" status (or equivalent), and closed issues to your "Done" status (or equivalent).
     *   **Action**:
-        1.  Configure the project details (`ORG_NAME`, `PROJECT_NUMBER`) and your specific status field names (`STATUS_FIELD_NAME`, `TODO_OPTION_NAME`, `DONE_OPTION_NAME`) in the `categorize-project-items.sh` script. Ensure these names exactly match your project's setup.
+        1.  Configure the project details (`OWNER_NAME`, `PROJECT_NUMBER`) and your specific status field names (`STATUS_FIELD_NAME`, `TODO_OPTION_NAME`, `DONE_OPTION_NAME`) in the `categorize-project-items.sh` script. Ensure these names exactly match your project's setup.
         2.  Run the script: `bash ./categorize-project-items.sh`.
     *   **Notes**:
         *   This script can also be run periodically to ensure project item statuses reflect the actual issue states if they are changed manually or by other processes outside the project board.

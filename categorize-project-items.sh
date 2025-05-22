@@ -5,25 +5,25 @@ set -e # Exit on most errors
 
 # --- Configuration ---
 # !!! IMPORTANT: Configure these variables to match your project's setup !!!
-ORG_NAME="YOUR_GITHUB_ORGANIZATION" # Replace with your GitHub organization name
+OWNER_NAME="YOUR_GITHUB_OWNER" # Replace with your GitHub organization or user name
 PROJECT_NUMBER="YOUR_PROJECT_NUMBER"     # Replace with your GitHub project number (the number, not the Node ID)
 STATUS_FIELD_NAME="Status"         # Replace with the exact name of your project's status field
 TODO_OPTION_NAME="Todo"            # Replace with the exact name of the option for 'To Do' items in your status field
 DONE_OPTION_NAME="Done"            # Replace with the exact name of the option for 'Done' items in your status field
 
 # --- Get Project and Field Details ---
-echo "Fetching Project Node ID for $ORG_NAME/projects/$PROJECT_NUMBER..."
-PROJECT_NODE_ID=$(gh project list --owner "$ORG_NAME" --format json | jq -r ".projects[] | select(.number == $PROJECT_NUMBER) | .id")
+echo "Fetching Project Node ID for $OWNER_NAME/projects/$PROJECT_NUMBER..."
+PROJECT_NODE_ID=$(gh project list --owner "$OWNER_NAME" --format json | jq -r ".projects[] | select(.number == $PROJECT_NUMBER) | .id")
 
 if [ -z "$PROJECT_NODE_ID" ]; then
-    echo "Error: Project $ORG_NAME/$PROJECT_NUMBER (Node ID) not found." >&2
+    echo "Error: Project $OWNER_NAME/$PROJECT_NUMBER (Node ID) not found." >&2
     exit 1
 fi
 echo "Using Project Node ID (for item-edit): $PROJECT_NODE_ID"
 echo "Using Project Number (for field-list, item-list): $PROJECT_NUMBER"
 
 echo "Fetching Status field details from Project $PROJECT_NUMBER..."
-FIELDS_JSON=$(gh project field-list "$PROJECT_NUMBER" --owner "$ORG_NAME" --format json)
+FIELDS_JSON=$(gh project field-list "$PROJECT_NUMBER" --owner "$OWNER_NAME" --format json)
 STATUS_FIELD_JSON=$(echo "$FIELDS_JSON" | jq -c --arg NAME "$STATUS_FIELD_NAME" '.fields[]? | select(.name == $NAME)')
 
 if [ -z "$STATUS_FIELD_JSON" ] || [ "$STATUS_FIELD_JSON" == "null" ]; then
@@ -48,7 +48,7 @@ sleep 3
 echo "Fetching all items from project $PROJECT_NUMBER..."
 # Increase limit if your project has more than 2000 items.
 # Using jq to iterate over items to handle potentially large JSON better than mapfile here.
-gh project item-list "$PROJECT_NUMBER" --owner "$ORG_NAME" --format json --limit 2000 | \
+gh project item-list "$PROJECT_NUMBER" --owner "$OWNER_NAME" --format json --limit 2000 | \
     jq -c '.items[]? | select(.content.url != null and .content.type == "Issue")' | \
 while IFS= read -r item_json; do
     PROJECT_ITEM_ID=$(echo "$item_json" | jq -r '.id')

@@ -9,8 +9,8 @@ PROJECT_NUMBER="PROJECT_NUMBER"     # Replace with your GitHub project number (t
 # You can get a list of all repos for your owner (organization or user) with a command like:
 # gh repo list YOUR_GITHUB_OWNER --limit 1000 --json nameWithOwner -q '.[].nameWithOwner'
 REPO_LIST=(
-    "YOUR_GITHUB_ORGANIZATION/YOUR_EXAMPLE_REPO_1"
-    "YOUR_GITHUB_ORGANIZATION/YOUR_EXAMPLE_REPO_2"
+    "YOUR_GITHUB_OWNER/YOUR_EXAMPLE_REPO_1"
+    "YOUR_GITHUB_OWNER/YOUR_EXAMPLE_REPO_2"
     # Add more repositories here, in the format "OWNER/REPO_NAME"
     # e.g., "YOUR_GITHUB_OWNER/ANOTHER_REPO"
 )
