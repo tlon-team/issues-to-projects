@@ -24,18 +24,8 @@ Before using these scripts, ensure you have the following installed and configur
     *   The shebang (first line, e.g., `#!/opt/homebrew/bin/bash` or `#!/bin/bash`) in the scripts might need adjustment based on your system's Bash location. `#!/usr/bin/env bash` is often a more portable option.
 4.  **Git**: Required by `batch-deploy-add-new-issues-workflow.sh` for cloning repositories.
 
-**Important General Configuration:**
-
-*   **Create and Configure `config.sh`**:
-    *   All scripts now source their configuration from a central `config.sh` file located in the same directory as the scripts.
-    *   A `config.sh.example` file is provided. If `config.sh` does not exist, you should copy the example:
-        ```bash
-        cp config.sh.example config.sh
-        ```
-    *   **Important**: Open `config.sh` in a text editor and carefully review and replace all placeholder values (e.g., `YOUR_GITHUB_OWNER`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_EXAMPLE_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
-    *   **`OWNER_NAME`**: This variable in `config.sh` must be set to your GitHub username or organization name.
-    *   **`REPO_LIST`**: When populating this list in `config.sh`, use only the repository names (e.g., `my-cool-repo`), not the full `owner/repo` path. The scripts will combine `OWNER_NAME` with these names. If `REPO_LIST` is left empty, relevant scripts will attempt to operate on all repositories for `OWNER_NAME`.
-    *   It is strongly recommended to add `config.sh` to your `.gitignore` file to prevent accidental commits of sensitive information like your `PAT_VALUE`.
+**Important General Configure `config.sh`**:
+    *   Open `config.sh` in a text editor and replace all placeholder values (e.g., `YOUR_GITHUB_OWNER`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_EXAMPLE_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
 *   Make scripts executable: `chmod +x *.sh`.
 
 ## Usage

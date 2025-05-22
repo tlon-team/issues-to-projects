@@ -1,15 +1,5 @@
 #!/bin/bash
 
-# -----------------------------------------------------------------------------
-# Central Configuration for GitHub Project Automation Scripts
-# -----------------------------------------------------------------------------
-# Instructions:
-# 1. After this file is created, consider copying it to `config.sh.example`
-#    to serve as a template (config.sh.example should be committed,
-#    config.sh should be in .gitignore).
-# 2. Replace the placeholder values below with your actual GitHub information.
-# -----------------------------------------------------------------------------
-
 # --- General GitHub Settings ---
 
 # Your GitHub username or organization name.
