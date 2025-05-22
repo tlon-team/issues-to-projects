@@ -1,4 +1,4 @@
-#!/opt/homebrew/bin/bash
+#!/bin/bash
 
 # Source the central configuration file
 CONFIG_FILE_PATH="$(dirname "$0")/config.sh"
