@@ -1,10 +1,14 @@
 # Scripts to automatically add issues from multiple repos to a project
 
-This repository contains a collection of shell scripts designed to automate the addition of issues in multiple repos to a specific project. This is a common challenge, as highlighted in discussions like [this GitHub Community thread](https://github.com/orgs/community/discussions/47803).
+The purpose of this repository is to share a few scripts that together provide a solution to the following problem:
 
-These scripts leverage the GitHub CLI (`gh`) and `jq` to automate tasks such as adding all existing issues from multiple repositories to a project, categorizing items in a project based on linked issue status, and deploying GitHub Actions workflows to multiple repositories.
+> How can I set up GitHub so that whenever a new issue is created in any of my repositories (or a subset thereof), the issue is automatically added to some project?
 
-**Important Notice:** These scripts were developed for personal use and are shared in the hope that they might be useful to others. They have not been thoroughly tested in all environments or scenarios. Users should review the scripts and test them carefully before running them in a production environment. Contributions, bug fixes, and improvements are welcome—see [Contributing](#contributing) below.
+GitHub [does not support this functionality natively](https://github.com/orgs/community/discussions/47803), hence the need for these scripts.
+
+The scripts leverage the GitHub CLI (`gh`) and `jq` to automate tasks such as adding all existing issues from multiple repositories to a project, categorizing items in a project based on linked issue status, and deploying GitHub Actions workflows to multiple repositories.
+
+**Important notice:** These scripts were developed for personal use and are shared in the hope that they might be useful to others. They have not been thoroughly tested in all environments or scenarios. Users should review the scripts and test them carefully before running them in a production environment. Contributions, bug fixes, and improvements are welcome—see [Contributing](#contributing) below.
 
 ## Prerequisites
 
@@ -27,13 +31,11 @@ Before using these scripts, ensure you have the following installed and configur
 *   Replace placeholder values (e.g., `YOUR_GITHUB_ORGANIZATION`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
 *   Make scripts executable: `chmod +x script-name.sh` (e.g., `chmod +x add-all-existing-issues-to-project.sh`).
 
-## Recommended Workflow
+## Usage
 
-This section outlines the recommended order for using the scripts to set up automated issue tracking for new issues and to handle existing issues.
+**Part 1: Initial setup (for automating *new* issues)**
 
-**Part 1: Initial Setup (For Automating *New* Issues)**
-
-This part focuses on configuring GitHub Actions to automatically add newly created issues to your project. These steps are typically done once.
+This part focuses on configuring GitHub Actions to automatically add newly created issues to your project. These steps are typically done only once.
 
 1.  **`automate-github-secrets.sh`**
     *   **Purpose**: Securely provides the necessary GitHub Personal Access Token (PAT) to your repositories. This PAT allows the GitHub Action (deployed in the next step) to add issues to your project.
@@ -72,7 +74,7 @@ This part focuses on configuring GitHub Actions to automatically add newly creat
         *   If the workflow file in the repository is identical to the one being deployed, it will skip committing and pushing for that repository.
     *   **Result**: After these two steps, any new issues created in the configured repositories will be automatically added to your GitHub project by the GitHub Action.
 
-**Part 2 (optional): Handling Existing Issues (One-Time Population)**
+**Part 2 (optional): Handling existing issues (one-time population)**
 
 The GitHub Action set up above only works for *newly created* issues. If you have existing issues in your repositories that you want to add to the project, use the following scripts.
 
