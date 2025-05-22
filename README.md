@@ -97,11 +97,12 @@ The GitHub Action set up above only works for *newly created* issues. If you hav
         *   The script will skip issues that are already in the project.
 
 4.  **`categorize-project-items.sh`**
-    *   **Purpose**: Updates the status of items in your project based on the current state (open/closed) of their linked issues. Can operate on all items in the project or be filtered to items from specific repositories.
+    *   **Purpose**: Updates the status of items in your project based on the current state (open/closed) of their linked issues. Can operate on all items in the project or be filtered to items from specific repositories. The script assumes your project's status field is named "Status".
     *   **Action**:
         1.  Configure the `categorize-project-items.sh` script:
             *   Set `OWNER_NAME` (for the project) and `PROJECT_NUMBER`.
-            *   Set your specific status field names (`STATUS_FIELD_NAME`, `TODO_OPTION_NAME`, `DONE_OPTION_NAME`).
+            *   Set `OPEN_ISSUE_STATUS` to the name of the status option in your project that should be assigned to open issues (e.g., "Todo", "Backlog").
+            *   Set `CLOSED_ISSUE_STATUS` to the name of the status option for closed issues (e.g., "Done", "Completed").
             *   Populate `REPO_LIST` if you want to only process project items linked to issues from these specific repositories. If `REPO_LIST` is left empty (default), the script processes all relevant items in the project regardless of their source repository.
         2.  Run the script: `bash ./categorize-project-items.sh`.
     *   **Notes**:

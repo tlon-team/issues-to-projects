@@ -7,9 +7,10 @@ set -e # Exit on most errors
 # !!! IMPORTANT: Configure these variables to match your project's setup !!!
 OWNER_NAME="YOUR_GITHUB_OWNER" # Replace with your GitHub organization or user name
 PROJECT_NUMBER="YOUR_PROJECT_NUMBER"     # Replace with your GitHub project number (the number, not the Node ID)
-STATUS_FIELD_NAME="Status"         # Replace with the exact name of your project's status field
-TODO_OPTION_NAME="Todo"            # Replace with the exact name of the option for 'To Do' items in your status field
-DONE_OPTION_NAME="Done"            # Replace with the exact name of the option for 'Done' items in your status field
+# The name of the project status field is typically "Status". This is assumed by the script.
+STATUS_FIELD_NAME="Status"
+OPEN_ISSUE_STATUS="Todo"            # Replace with the name of the status option in your project for OPEN issues (e.g., "Todo", "Backlog")
+CLOSED_ISSUE_STATUS="Done"          # Replace with the name of the status option in your project for CLOSED issues (e.g., "Done", "Completed")
 
 # REPO_LIST: Define specific repositories to filter project items by.
 # If REPO_LIST is empty (default), the script considers items linked to issues from *any* repository within the project.
@@ -43,12 +44,13 @@ fi
 STATUS_FIELD_ID=$(echo "$STATUS_FIELD_JSON" | jq -r '.id')
 echo "Status Field ID ('$STATUS_FIELD_NAME'): $STATUS_FIELD_ID"
 
-TODO_OPTION_ID=$(echo "$STATUS_FIELD_JSON" | jq -r --arg NAME "$TODO_OPTION_NAME" '.options[]? | select(.name == $NAME) | .id')
-DONE_OPTION_ID=$(echo "$STATUS_FIELD_JSON" | jq -r --arg NAME "$DONE_OPTION_NAME" '.options[]? | select(.name == $NAME) | .id')
+OPEN_ISSUE_STATUS_OPTION_ID=$(echo "$STATUS_FIELD_JSON" | jq -r --arg NAME "$OPEN_ISSUE_STATUS" '.options[]? | select(.name == $NAME) | .id')
+CLOSED_ISSUE_STATUS_OPTION_ID=$(echo "$STATUS_FIELD_JSON" | jq -r --arg NAME "$CLOSED_ISSUE_STATUS" '.options[]? | select(.name == $NAME) | .id')
 
-if [ -z "$TODO_OPTION_ID" ]; then echo "Error: Todo option '$TODO_OPTION_NAME' not found." >&2; exit 1; fi
-if [ -z "$DONE_OPTION_ID" ]; then echo "Error: Done option '$DONE_OPTION_NAME' not found." >&2; exit 1; fi
-echo "Todo Option ID: $TODO_OPTION_ID, Done Option ID: $DONE_OPTION_ID"
+if [ -z "$OPEN_ISSUE_STATUS_OPTION_ID" ]; then echo "Error: Option for OPEN issues ('$OPEN_ISSUE_STATUS') not found in Status field." >&2; exit 1; fi
+if [ -z "$CLOSED_ISSUE_STATUS_OPTION_ID" ]; then echo "Error: Option for CLOSED issues ('$CLOSED_ISSUE_STATUS') not found in Status field." >&2; exit 1; fi
+echo "Option ID for OPEN issues ('$OPEN_ISSUE_STATUS'): $OPEN_ISSUE_STATUS_OPTION_ID"
+echo "Option ID for CLOSED issues ('$CLOSED_ISSUE_STATUS'): $CLOSED_ISSUE_STATUS_OPTION_ID"
 echo "Initial setup complete. Pausing for 3 seconds..."
 sleep 3
 
@@ -118,11 +120,11 @@ while IFS= read -r item_json; do
     TARGET_OPTION_ID=""
     TARGET_STATUS_NAME=""
     if [ "$ISSUE_STATE" == "OPEN" ]; then
-        TARGET_OPTION_ID="$TODO_OPTION_ID"
-        TARGET_STATUS_NAME="$TODO_OPTION_NAME"
+        TARGET_OPTION_ID="$OPEN_ISSUE_STATUS_OPTION_ID"
+        TARGET_STATUS_NAME="$OPEN_ISSUE_STATUS"
     elif [ "$ISSUE_STATE" == "CLOSED" ]; then
-        TARGET_OPTION_ID="$DONE_OPTION_ID"
-        TARGET_STATUS_NAME="$DONE_OPTION_NAME"
+        TARGET_OPTION_ID="$CLOSED_ISSUE_STATUS_OPTION_ID"
+        TARGET_STATUS_NAME="$CLOSED_ISSUE_STATUS"
     else
         echo "  Unknown issue state '$ISSUE_STATE' for $ISSUE_URL. Skipping status update."
         continue
