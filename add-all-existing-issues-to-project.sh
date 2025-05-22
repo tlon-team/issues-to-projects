@@ -52,9 +52,14 @@ for repo_full_name in "${REPO_LIST[@]}"; do
         continue
     fi
 
-    mapfile -t ISSUE_URLS < <(echo "$ISSUE_URLS_OUTPUT" | jq -r ".[]? | .url // empty") # Handle empty results gracefully
+    ISSUE_URLS=()
+    while IFS= read -r line; do
+        if [[ -n "$line" ]]; then # Ensure non-empty lines are added
+            ISSUE_URLS+=("$line")
+        fi
+    done < <(echo "$ISSUE_URLS_OUTPUT" | jq -r ".[]? | .url // empty") # Handle empty results gracefully
 
-    if [ ${#ISSUE_URLS[@]} -eq 0 ] || [[ "${ISSUE_URLS[0]}" == "" && ${#ISSUE_URLS[@]} -eq 1 ]]; then
+    if [ ${#ISSUE_URLS[@]} -eq 0 ]; then # Simplified condition as empty lines are skipped
         echo "No issues (open or closed) found in $repo_full_name to add."
         sleep 1
         continue
