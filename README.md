@@ -2,7 +2,7 @@
 
 The purpose of this repository is to share a few scripts that together provide a solution to the following problem:
 
-> How can I set up GitHub so that whenever a new issue is created in any of my repositories (or a subset thereof), the issue is automatically added to a project owned by my user or organization?
+> How the hell can I set up GitHub so that whenever a new issue is created in any of my repositories (or a subset thereof), it is automatically added to a project‽
 
 GitHub [does not support this functionality natively](https://github.com/orgs/community/discussions/47803), hence the need for these scripts.
 
