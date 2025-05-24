@@ -1,6 +1,6 @@
 # Scripts to automatically add issues from multiple repos to a project
 
-The purpose of this repository is to share a few scripts that together provide a solution to the following problem:
+The purpose of this repository is to share a few scripts that together provide an answer to the following question:
 
 > How the hell can I set up GitHub so that whenever a new issue is created in any of my repositories (or a subset thereof), it is automatically added to a project‽
 
