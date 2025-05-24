@@ -1,4 +1,4 @@
-# Scripts to automatically add issues from multiple repos to a project
+# Scripts to automatically add issues from multiple repos to a GitHub project
 
 The purpose of this repository is to share a few scripts that together provide an answer to the following question:
 
