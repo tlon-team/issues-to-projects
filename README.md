@@ -82,7 +82,7 @@ The GitHub Action set up above only works for *newly created* issues. If you hav
         1.  Ensure `OWNER_NAME`, `PROJECT_NUMBER`, and optionally `REPO_LIST` are correctly set in `config.sh`.
         2.  Run the script: `bash ./add-all-existing-issues-to-project.sh`. This can take a significant amount of time.
     *   **Notes**:
-        *   It includes `sleep` commands and a `MAX_OPERATIONS_BEFORE_LONG_PAUSE` variable to help manage GitHub API rate limits. If you hit rate limits, you might need to wait (often an hour) and resume, possibly by commenting out already processed repositories from `REPO_LIST`.
+        *   It includes `sleep` commands to help manage GitHub API rate limits. If you hit rate limits, you might need to wait (often an hour) and resume, possibly by commenting out already processed repositories from `REPO_LIST`.
         *   The script will skip issues that are already in the project.
 
 4.  **`categorize-project-items.sh`**
