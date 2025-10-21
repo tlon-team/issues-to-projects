@@ -1,4 +1,18 @@
-# Scripts to automatically add issues from multiple repos to a GitHub project
+# `issues-to-projects` fork
+
+This is a fork of https://github.com/benthamite/issues-to-projects. It differs only in that the values of `config.sh` are already set. (To protect these secrets, the file is encrypted with `git-crypt`.)
+
+## Process for configuring new repos
+
+When creating a new `tlon` repository, here’s what you need to do:
+1. Open `config.sh`, jump to line 24, enter the new repository name (e.g. `uqbar-ru`), and save the file.
+2. Run `bash ./automate-github-secrets.sh` to set the GitHub secret in the new repository.
+3. Run `bash ./batch-deploy-add-new-issues-workflow.sh` to deploy the GitHub Actions workflow to the new repository.
+
+---
+
+What follows is the README from the original repository. No need to read unless you want more context about the scripts.
+
 
 This repository shares a few scripts that together provide an answer to the following question:
 
