@@ -9,10 +9,9 @@ When creating a new `tlon` repository, here’s what you need to do:
 2. Run `bash ./automate-github-secrets.sh` to set the GitHub secret in the new repository.
 3. Run `bash ./batch-deploy-add-new-issues-workflow.sh` to deploy the GitHub Actions workflow to the new repository.
 
----
-
 What follows is the README from the original repository. No need to read unless you want more context about the scripts.
 
+---
 
 This repository shares a few scripts that together provide an answer to the following question:
 
