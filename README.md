@@ -28,6 +28,7 @@ Before using these scripts, ensure you have the following installed and configur
 1.  **Configure `config.sh`**:
     *   Open `config.sh` in a text editor and replace all placeholder values (e.g., `YOUR_GITHUB_OWNER`, `YOUR_PROJECT_NUMBER`, `YOUR_GITHUB_PAT`, `YOUR_EXAMPLE_REPO_1`, `YOUR_PATH_TO/add-issues-to-project.yml`) with your actual data.
 2.  **Make scripts executable**: `chmod +x *.sh`.
+3.  **Run the scripts**: e.g., `bash ./automate-github-secrets.sh`.
 
 ## Usage
 
